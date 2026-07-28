@@ -1692,19 +1692,27 @@ def main():
     OUT_FILE.write_text("window.SITE_DATA = " + payload + ";\n", encoding="utf-8")
     print(f"[build] 写出 {OUT_FILE} ({len(payload) // 1024} KB)")
 
-    # ---- 缓存破防：每次构建把 index.html 里静态资源的 ?v= 戳成当前时间戳，
-    #      避免浏览器（尤其 file://）缓存旧 data.js/app.js/style.css 导致页面不更新 ----
+    # ---- 缓存破防（文件名哈希）：把 app.js/style.css/data.js 复制为带内容哈希的文件名并改写
+    #      index.html 引用。file:// 下浏览器可能忽略 ?v= 查询串，改文件名才能彻底杜绝旧缓存。----
+    import hashlib
     index_file = BASE_DIR / "index.html"
     try:
-        v = datetime.datetime.now().strftime("%Y%m%d%H%M")
         html = index_file.read_text(encoding="utf-8")
-        html2 = re.sub(r"(data/data\.js|assets/app\.js|assets/style\.css)(\?v=\d+)?",
-                       lambda m: m.group(1) + "?v=" + v, html)
-        if html2 != html:
-            index_file.write_text(html2, encoding="utf-8")
-            print(f"[build] index.html 资源版本戳已更新 ?v={v}")
+        for src_dir, stem, ext in ((BASE_DIR / "assets", "app", "js"),
+                                   (BASE_DIR / "assets", "style", "css"),
+                                   (BASE_DIR / "data", "data", "js")):
+            src = src_dir / f"{stem}.{ext}"
+            h = hashlib.md5(src.read_bytes()).hexdigest()[:8]
+            hashed = src_dir / f"{stem}.{h}.{ext}"
+            hashed.write_bytes(src.read_bytes())
+            for old in src_dir.glob(f"{stem}.*.{ext}"):   # 清理旧哈希文件
+                if old.name != hashed.name:
+                    old.unlink()
+            html = re.sub(rf"{stem}\.[\w.]*\.?{ext}(\?v=\d+)?", f"{stem}.{h}.{ext}", html)
+        index_file.write_text(html, encoding="utf-8")
+        print("[build] index.html 已切换到哈希文件名引用（防旧缓存）")
     except Exception as e:
-        print(f"[build] 警告：index.html 版本戳更新失败（{e}），不影响数据")
+        print(f"[build] 警告：哈希文件名改写失败（{e}），不影响数据")
 
     # ---- 抽查核对 ----
     tin = next(c for c in commodities if c["key"] == "tin")
