@@ -227,7 +227,7 @@
         chartDiv.outerHTML = '<div class="chart-fallback">图表加载失败（ECharts CDN 不可用），数据请见下表</div>';
         return;
       }
-      if (!chartInst) chartInst = echarts.init(chartDiv, null, { renderer: "canvas" });
+      if (!chartInst) chartInst = echarts.init(chartDiv, null, { renderer: "svg" });  // svg 渲染：规避部分机器 GPU canvas 加速故障导致的空白图
       var ps = periods();
       var estNotes = {};
       var estQBySeries = {};
@@ -480,7 +480,7 @@
       div.outerHTML = '<div class="hbar-fallback"><div class="hbar-note">简版条形图（当前浏览器内核不支持 ECharts，数据一致）</div>' + rowsHtml + "</div>";
       return panel;
     }
-    var inst = echarts.init(div);
+    var inst = echarts.init(div, null, { renderer: "svg" });
     inst.setOption(Object.assign(darkChartBase(), {
       grid: { left: 190, right: 110, top: 20, bottom: 34 },
       tooltip: {
@@ -576,7 +576,7 @@
           div.outerHTML = '<div class="chart-fallback">图表加载失败（ECharts CDN 不可用）</div>';
           return;
         }
-        var inst = echarts.init(div);
+        var inst = echarts.init(div, null, { renderer: "svg" });
         inst.setOption(Object.assign(darkChartBase(), {
           legend: { top: 4, textStyle: { color: "#8b98a9", fontSize: 11 } },
           xAxis: { type: "category", data: seriesDefs[0].points.map(function (p) { return p.q; }), axisLabel: { rotate: 45 } },
