@@ -1,67 +1,146 @@
-# 财报跟踪平台
+# 财报跟踪平台 · 构建文档
 
-全球锡 / 锌 / 铝 / 镍 / 铜企业财报产量数据跟踪网站。本地静态页面，**双击 `index.html` 即可使用**（file:// 协议直接运行，无需任何服务器）。
+全球锡/锌/铝/镍/铜/锂企业财报产量数据跟踪体系。本文档描述**从数据底稿目录到网站产出的完整构建链路**。
 
-- 访问密码：`yafco888`（前端 SHA-256 校验，sessionStorage 记住；仅为本地防窥门槛，非安全加密）
-- 数据来源：公司官方财报 / 业绩公告，汇总于三个 Excel 数据源
+- 本地使用：双击 `index.html`（file:// 直开，无需服务器），密码 `yafco888`（防窥门槛，非加密）
+- 外网版：https://wangziquan-del.github.io/yafco-tracker/ （GitHub Pages，仓库 public，同密码）
+- 重建+上线一条龙：`bash deploy.sh`
 
-## 目录结构
+## 一、数据流总览
 
 ```
-财报跟踪平台/
-  build_site.py      # 数据管道：读 Excel → 生成 data/data.js
-  index.html         # 唯一入口（含密码门）
-  assets/style.css   # 深色金融终端风样式
-  assets/app.js      # 前端逻辑（纯 JS，无框架）
-  data/data.js       # build 生成：window.SITE_DATA = {...}（script src 引入，避开 file:// 的 fetch/CORS 限制）
-  README.md
+各品种 Excel 底稿（人工/定时任务按 SOP 更新）
+  + data/news.json（信息速递条目）
+  + build_site.py 内手工常量（日历/口径/指引/综述观点/2027展望/成本曲线）
+        │
+        ▼  python build_site.py
+  COMMODITIES 注册表 → 各品种 extract_* 抽取 → 统一 sections 结构
+    → 机制1 缺季拟合（est_q 斜体标记）
+    → 机制2 指引进度（FY2026 指引 vs 年化）
+    → 品种综述（自动统计 + REVIEW_COMMENTS 观点段 + GLOBAL_SUPPLY_VIEW）
+    → FY2027_OUTLOOK 2027 展望列
+    → 抽查核对（PASS/FAIL，错一处即报警）
+        │
+        ▼
+  data/data.js（window.SITE_DATA） + index.html 引用改哈希文件名（防缓存）
+        │
+        ▼
+  浏览器渲染（assets/app.js 纯 JS 无框架，ECharts SVG 渲染，本地 echarts.min.js）
+        │
+        ▼  git push（deploy.sh）
+  GitHub Pages 外网版
 ```
 
-## 日常使用
+## 二、目录结构
 
-1. 更新 Excel 数据源（锡 / 锌产量表）；
-2. 运行数据管道重建网站数据：
+### 平台目录 `D:\拷贝文件\E\永安\财报跟踪平台\`
 
-   ```
-   python "D:\拷贝文件\E\永安\财报跟踪平台\build_site.py"
-   ```
+```
+build_site.py      # 数据管道（唯一构建脚本，含全部手工常量）
+index.html         # 入口（密码门；资源引用为哈希文件名，构建时自动改写）
+deploy.sh          # build + git commit + push（Pages 约 1 分钟生效）
+assets/
+  app.js           # 前端逻辑（纯 JS）；构建时生成 app.<hash>.js
+  style.css        # 样式；构建时生成 style.<hash>.css
+  echarts.min.js   # ECharts 本地化（CDN 仅兜底）
+data/
+  data.js          # 构建产物 window.SITE_DATA；构建时生成 data.<hash>.js
+  news.json        # 信息速递源（手工+爬虫追加）
+README.md          # 本文档
+```
 
-   运行后会打印各品种抽取到的公司数 / 数据点数摘要，并自动抽查关键数值（PASS/FAIL）。
-   Windows 终端如显示乱码，可先执行 `set PYTHONIOENCODING=utf-8`（不影响生成文件，文件本身为 UTF-8）。
-3. 刷新浏览器页面即可看到最新数据。
+### 品种底稿目录（每个品种一份 Excel + 一份 SOP）
 
-## 数据源
+| 品种 | Excel 底稿 | SOP（更新规范/口径/披露节奏） | 板块结构 |
+|---|---|---|---|
+| 锡 | `永安\周报数据更新\进出口库存\海外主要公司产量.xlsx` | `永安\周报数据更新\AGENTS.md` | 矿山/精炼锡 |
+| 锌 | `永安\锌\全球锌企季度产量梳理.xlsx` | `永安\锌\AGENTS.md` | 锌矿/锌锭冶炼 |
+| 铝 | `永安\铝\全球铝企季度产量梳理.xlsx` | `永安\铝\AGENTS.md`（含阿拉丁/爱择抓取流程） | 铝土矿/氧化铝/电解铝 |
+| 镍 | `永安\镍\全球镍企季度产量梳理.xlsx` | `永安\镍\AGENTS.md` | 印尼中间品/一级镍/镍铁NPI |
+| 铜 | `永安\铜\全球铜企季度产量梳理.xlsx` | `永安\铜\AGENTS.md` | 铜矿(kt)/国内铜企(万吨) |
+| 锂 | `永安\锂\全球锂企季度产量梳理.xlsx` | `永安\锂\AGENTS.md` | 锂资源(吨LCE)/锂盐冶炼(吨) |
 
-| 品种 | Excel | 说明 |
+锂的首次建库研究底稿在 `永安\锂\research\*.json`（逐公司来源+口径记录）。
+
+## 三、构建管线 build_site.py
+
+### 3.1 COMMODITIES 注册表
+
+加品种 = 注册表加一条 + 写一个 `extract_*` 函数：
+
+```python
+"lithium": {"name": "锂", "excel": r"...xlsx", "extract": "extract_lithium",
+            "calendar": LITHIUM_CALENDAR, "caliber_notes": LITHIUM_CALIBER_NOTES,
+            "default_view": "quarter"}
+```
+
+抽取函数返回统一结构：`sections[]`（每板块 key/title/unit/quarters/years/companies/total）+ `costs`/`cost_curve`/`capex` + `changelog` + `overview`。前端按 sections 自动渲染，无需改前端。
+
+### 3.2 数据机制
+
+- **机制 1 缺季拟合**：年度有值、季度空缺时按季节分布/平均拟合，`est_q` 标记 → 前端斜体琥珀色显示
+- **机制 2 指引进度**：`parse_guide_value` 解析 FY2026 指引文本（只读「；」前第一段，数值置前+单位），年化=Q1×4 或 H1×2，状态=超出/符合/不及
+- **同比**：一律 Python 自算（Excel 公式不读缓存值，`data_only=False`）
+- **总计行**：口径混杂直接求和，仅作量级参考（同比按两期均有值的公司集合）
+
+### 3.3 手工维护常量（文件头区域）
+
+| 常量 | 内容 | 更新时机 |
 |---|---|---|
-| 锡 | `D:\拷贝文件\E\永安\周报数据更新\进出口库存\海外主要公司产量.xlsx` | Sheet1 矿表/锭表 + Alphamin / Metals X / Timah / MSC 各公司 sheet +「季度补充」sheet |
-| 锌 | `D:\拷贝文件\E\永安\锌\全球锌企季度产量梳理.xlsx` | 锌矿季度产量、锌锭冶炼季度产量、资本开支、更新日志 |
-| 铝 | `D:\拷贝文件\E\永安\铝\全球铝企季度产量梳理.xlsx` | 铝土矿 / 氧化铝 / 电解铝季度产量（三个板块）、更新日志 |
-| 镍 | `D:\拷贝文件\E\永安\镍\全球镍企季度产量梳理.xlsx` | 印尼中间品（重点板块，排第一位）/ 一级镍 / 镍铁NPI 季度产量、更新日志；单位=吨 |
-| 铜 | `D:\拷贝文件\E\永安\铜\全球铜企季度产量梳理.xlsx` | 铜矿（海外，单位 kt）/ 国内铜企（单位万吨）季度产量、更新日志；两板块单位不同 |
+| `*_CALENDAR` | 各品种披露日历 | 披露节奏变化时 |
+| `*_CALIBER_NOTES` | 口径说明（页底折叠区） | 口径变化时 |
+| `REVIEW_COMMENTS` | 品种综述观点段（最新财报季总结+年度看法+α），**date 随内容改** | 每个财报节点 |
+| `GLOBAL_SUPPLY_VIEW` | 跨品种供应端强弱对比（所有品种页共享） | 格局变化时 |
+| `FY2027_OUTLOOK` | 2027 展望（按公司，标 官方/计划/平台推断；无依据的构建时自动按线性持平补填） | 每个财报节点 |
+| 锂 cost_curve | 澳矿成本曲线（A$/dmt，FY26 指引） | 指引调整时 |
 
-注意：锡 Excel 部分单元格为公式且无缓存值，脚本一律以 `data_only=False` 读原始值，同比/累计由 Python 自行计算；铝/镍 Excel 同比列与总计行也是公式，同样跳过自算。镍表 26Q1/26Q2 列中的「待发布/未披露」等文本按无数据处理，但会记录在公司卡片上展示（⏳ 标记）。
+### 3.4 抽查核对
 
-## 功能
+main() 末尾对六品种关键数值做 PASS/FAIL 核对（如 Alphamin 26Q2=5013、IGO 26Q2=48375），任一 FAIL 打印报警。**改 Excel 后必须跑 build 并确认全部 PASS。**
 
-- **总览**：品种卡片（最新季度披露进度、首个板块合计及同比、最近更新）、财报披露倒计时（跨品种按日期升序）、最近更新日志；
-- **品种页**：按品种配置的板块列表渲染（锡=矿山/精炼、锌=锌矿/锌锭冶炼、铝=铝土矿/氧化铝/电解铝、镍=印尼中间品/一级镍/镍铁NPI、铜=铜矿(kt)/国内铜企(万吨)），每板块季度 / 年度视图切换（铝默认年度视图，其余默认季度视图，品种级配置 `default_view`），ECharts 堆叠柱状图 + 合计同比双轴折线，表格悬停显示变化原因，含估算/推算的系列带 † 标记；
-- **公司卡片**：按板块逐组渲染；最新季度产量、同比（红涨绿跌）、FY 指引进度条、变化原因、下次披露日、口径备注；最新数据为年度值的公司标注「年度披露」；
-- **披露日历**：日期 + 公司 + 事件 + 状态（已披露待核 / 待披露，按构建日期自动判定）；
-- **成本与资本开支**：锌资本开支总表（币种未折算，见口径说明）；锡 Alphamin AISC、Metals X C1/AISC 季度折线；铝暂无；
-- **更新日志**：锌/铝读自 Excel「更新日志」sheet；锡日志为 `build_site.py` 中的 `TIN_CHANGELOG` 常量；
-- **口径说明**：各品种页底部折叠区。
+### 3.5 缓存破防
 
-图表依赖 jsDelivr CDN 的 ECharts；CDN 不可用时图表区显示降级提示，数据表不受影响。
+构建末尾把 `app.js`/`style.css`/`data.js` 复制为 `<名>.<内容哈希>.<后缀>` 并改写 index.html 引用（file:// 下 `?v=` 查询串不可靠，改文件名才彻底）。
 
-## 扩展新品种
+## 四、前端结构（assets/app.js）
 
-1. 在 `build_site.py` 顶部的 `COMMODITIES` 注册表中新增一个条目：
-   `{key, name, excel 路径, extract(抽取函数名), calendar(披露日历常量), caliber_notes(口径说明), default_view("quarter"/"year")}`；
-2. 仿照 `extract_tin` / `extract_zinc` / `extract_aluminum` 编写抽取函数，返回统一结构：
-   `sections`（板块列表，每板块含 `key`、`title`、`unit`、`quarters`、`years`、
-   `companies[{name,country,project,data,yoy,guide,reason,note,est,est_note}]`、`total`，数量任意），
-   以及 `costs` / `capex` / `changelog` / `overview` / `last_update`；
-3. 运行 `build_site.py`，前端按 `sections` 列表自动渲染对应数量的板块（表格+图表+公司卡片），无需改动前端代码。
+品种页区块顺序：**信息速递（最新 4 条，红黄绿 impact 标）→ 品种综述（自动统计+研究观点+跨品种对比）→ 产量板块（季度/年度切换）→ 公司卡片 → 2026 指引 vs 年化进度（含 2027 展望列+总量展望行）→ 成本与资本开支 → 披露日历/更新日志（默认折叠）→ 口径说明**。公司卡片/日历/日志均可点标题折叠。
 
-披露日历、锡更新日志等集中在 `build_site.py` 文件头的常量区，方便手工维护；云锡/华锡/兴业/明苏尔的季度序列（含明苏尔矿产锡 SR+B2、Pisco 精炼锡）统一从 Excel「季度补充」sheet 读取，是该数据的唯一来源。
+工程细节：
+
+- **ECharts 一律 SVG 渲染 + rAF 延迟初始化**（挂载前 init 会量成 0 宽图——2026-07-28 成本图不可见事故的根因，勿回退）
+- 图表库加载失败时成本图降级为纯 HTML 条形图，产量图降级为提示+数据表
+- 自诊断：JS 错误红色浮条 + 页脚「图表引擎」状态
+- 密码门：SHA-256 校验，sessionStorage 记住
+
+## 五、信息速递（data/news.json）
+
+字段：`date / commodity(锡/锌/铝/镍/铜/锂/宏观) / category(供应/需求/政策/公司/宏观) / title / summary / source / url / impact(high红/mid黄/low绿)`。追加后重跑 build 即上线；单品种页限最新 4 条，总览页全量。
+
+来源渠道：
+
+- **公司官网/交易所**（财报节点定时任务顺手提炼）
+- **阿拉丁 aladdiny.com**：铝供应端，免登录列表 API + 会员全文（流程见 `铝\AGENTS.md`，账号 yaqh）
+- **爱择 azchina-cn.com**：铝独家/专题调研列表免登录（正文需会员，暂无账号）
+- **抖音/小红书 MCP**：供应端传言——title 前缀【传言】、注明未证实、source 标「平台@作者」（小红书额度不稳定）
+- **用户丢链接**（微信文章可直接 FetchURL）
+
+## 六、定时任务体系
+
+- **各品种财报节点**：锡 13 个、锌 8 个、铝/镍/铜/锂各 8 个年度循环 cron（多在 09:07），任务提示词指向对应品种 SOP
+- **每周一 09:11 扫描**（id 51265eed）：印尼镍链动态、阿拉丁、爱择、抖音热点、突发公告 → news.json
+- 财报节点任务同时负责：更新 Excel → 备份 → 更新日志 → 更新 REVIEW_COMMENTS/FY2027_OUTLOOK → build → 提炼新闻 →（外网）deploy.sh
+
+## 七、部署
+
+- 本地：双击 index.html
+- 外网：`bash deploy.sh` = build + commit + push → GitHub Pages（仓库 wangziquan-del/yafco-tracker，public——免费版 Pages 不支持私有仓库；要私有化需 GitHub Pro 后改 visibility）
+
+## 八、扩展新品种清单
+
+1. 建品种目录 + Excel（列结构：公司|国家|项目/口径|23Q1…总计|同比|变化原因|FY2026指引|备注 + 更新日志 sheet）
+2. 写品种 SOP（AGENTS.md）
+3. build_site.py：COMMODITIES 加条目 + extract 函数 + 日历/口径常量 + 抽查核对
+4. （可选）REVIEW_COMMENTS / FY2027_OUTLOOK 加品种条目
+5. 跑 build 确认 PASS → deploy.sh 上线
+6. 建年度循环 cron；根 AGENTS.md 登记品种段落
