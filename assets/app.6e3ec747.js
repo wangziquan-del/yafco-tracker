@@ -2,6 +2,20 @@
 (function () {
   "use strict";
 
+  /* 自诊断：脚本错误浮条（用户截图即可定位问题） */
+  window.addEventListener("error", function (e) {
+    var b = document.getElementById("js-err-banner");
+    if (!b) {
+      b = document.createElement("div");
+      b.id = "js-err-banner";
+      b.style.cssText = "position:fixed;bottom:0;left:0;right:0;background:#5d1f1f;color:#ffd7d7;" +
+        "padding:8px 14px;font-size:13px;z-index:99999;font-family:monospace";
+      document.body.appendChild(b);
+    }
+    b.textContent = "页面脚本错误：" + e.message + "（" + String(e.filename || "").split("/").pop() +
+      ":" + e.lineno + "）— 请截图发给维护者";
+  });
+
   /* ================= 密码门（本地防窥门槛，非安全加密） ================= */
   // SHA-256("访问密码")，明文不出现在界面与源码中（README 除外）
   var GATE_HASH = "dfc1d541e6dbbc1f24d98dde8da2f19bd6fc57565ff43ff04a012a12958966ca";
@@ -805,7 +819,14 @@
       renderCompanyCards(main, commodity, sec);
     });
     renderGuideProgress(main, commodity);
-    renderCosts(main, commodity);
+    try {
+      renderCosts(main, commodity);
+    } catch (err) {
+      var errPanel = el("div", "panel");
+      errPanel.style.color = "#ff9d9d";
+      errPanel.textContent = "成本区块渲染失败：" + err.message + "（请截图发给维护者）";
+      main.appendChild(errPanel);
+    }
 
     // 披露日历
     var secC = el("div", "section");
@@ -846,7 +867,8 @@
     }
     document.getElementById("app").style.display = "";
     document.getElementById("build-time").textContent = "数据构建 " + DATA.build_time;
-    document.getElementById("build-time-2").textContent = DATA.build_time;
+    document.getElementById("build-time-2").textContent = DATA.build_time +
+      " · 图表引擎：" + (typeof echarts !== "undefined" ? "ECharts " + echarts.version : "未加载（降级模式）");
 
     var tabs = document.getElementById("tabs");
     var main = document.getElementById("main");
