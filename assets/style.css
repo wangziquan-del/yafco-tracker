@@ -113,6 +113,9 @@ main { max-width: 1560px; margin: 0 auto; padding: 22px 24px 60px; }
 .hbar-val { flex: 0 0 130px; color: #d6dde6; font-family: Consolas, monospace; }
 /* 指引表内 2027 总量展望收尾行 */
 .outlook2027-row td { background: rgba(63,111,180,.08); border-top: 1px solid #2a3a52; color: #b8c9de; }
+/* 事件标记（事故/停产，来自 news affects） */
+.event-flag, .event-flag a { color: #ff9d6b; }
+.event-flag a:hover { text-decoration: underline; }
 .panel {
   background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
   padding: 16px;

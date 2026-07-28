@@ -363,6 +363,14 @@
         var lastP = pps[pps.length - 1];
         pendHtml = '<div class="co-line">⏳ <b>' + esc(lastP) + "</b>：" + esc(c.pending[lastP]) + "</div>";
       }
+      // 事件标记（事故/停产等，来自 news.json affects 字段）
+      var eventHtml = "";
+      if (c.event_flag) {
+        var inner = '⚠ <b>' + esc(c.event_flag.date || "") + "</b> " + esc(c.event_flag.note || "");
+        eventHtml = '<div class="co-line event-flag">' +
+          (c.event_flag.url ? '<a href="' + esc(c.event_flag.url) + '" target="_blank" rel="noopener">' + inner + "</a>" : inner) +
+          "</div>";
+      }
       // 成本行：纯数字/区间文本补单位，其余（含币种/口径说明）原样展示
       var costHtml = "";
       if (c.cost) {
@@ -404,7 +412,7 @@
       var nextHtml = nd
         ? '<div class="co-next">下次披露：' + (nd.approx ? "约 " : "") + esc(nd.date) + " · " + esc(nd.event) + "</div>"
         : "";
-      card.innerHTML = headHtml + mainHtml + pendHtml + costHtml + guideHtml + reasonHtml + estHtml + noteHtml + nextHtml;
+      card.innerHTML = headHtml + mainHtml + pendHtml + eventHtml + costHtml + guideHtml + reasonHtml + estHtml + noteHtml + nextHtml;
       grid.appendChild(card);
     });
     sectionEl.appendChild(grid);

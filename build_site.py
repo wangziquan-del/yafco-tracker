@@ -1388,6 +1388,7 @@ FY2027_OUTLOOK = {
             "Alphamin": "稳态 2 万吨/年，Mpama South 满产首个完整年；Bisie 深部勘探中（计划）",
             "PT Timah": "看 3 万吨目标兑现度（2026 年化 84% 不及）；陆上衰减 vs 海上采矿占比提升",
             "明苏尔": "San Rafael 品位下滑，B2 尾矿再处理项目补充（计划）",
+            "兴业银锡": "银漫事故 2026 低基数（7/26 停产约1个月，选厂正常），2027 恢复性增长至事故前水平（事件）",
         },
         "total": "2027 恢复延续：Alphamin 稳产+印尼出口正常化，缅甸佤邦复产节奏是最大摆动项；若缅甸正常化+刚果新增，供应恢复斜率超预期，紧平衡转向小幅过剩。",
     },
@@ -1635,10 +1636,46 @@ def extract_lithium(path):
     }
 
 
+def attach_event_flags(entry, news):
+    """把 news.json 中带 affects 的条目（事故/停产等产量事件）挂到对应公司：
+    公司卡片加 event_flag（⚠ 行），指引表备注追加事件说明。最新条目优先。"""
+    for n in news:
+        if n.get("commodity") != entry["name"] or not n.get("affects"):
+            continue
+        for aff in n["affects"]:
+            cname = aff.get("company")
+            note = aff.get("note") or n.get("title")
+            if not cname:
+                continue
+            flag = {"date": n.get("date"), "note": note, "url": n.get("url")}
+            for sec in entry["sections"]:
+                for c in sec["companies"]:
+                    if c["name"] == cname or cname in c["name"]:
+                        c["event_flag"] = flag   # 新闻已按日期降序，先命中即最新
+            for r in entry.get("guide_progress", {}).get("rows", []):
+                if r["name"].split("·")[0] == cname or r["name"].startswith(cname):
+                    tag = f"⚠ {flag['date']} {note}"
+                    if tag not in (r["note"] or ""):
+                        r["note"] = ((r["note"] + "；" + tag) if r["note"] else tag)
+
+
 # ---------------------------------------------------------------------------
 # 构建
 # ---------------------------------------------------------------------------
 def main():
+    # ---- 信息速递（data/news.json，可选；文件缺失/解析失败按空数组处理，不阻断构建）----
+    news_file = BASE_DIR / "data" / "news.json"
+    news = []
+    if news_file.exists():
+        try:
+            raw_news = json.loads(news_file.read_text(encoding="utf-8"))
+            news = [n for n in raw_news if isinstance(n, dict)]
+            news.sort(key=lambda n: n.get("date") or "", reverse=True)  # 按日期降序，最新在前
+        except Exception as e:
+            print(f"[build] 警告：news.json 解析失败（{e}），按空数组处理")
+            news = []
+    print(f"[build] 信息速递 {len(news)} 条")
+
     commodities = []
     for key, cfg in COMMODITIES.items():
         print(f"[build] 抽取 {cfg['name']} <- {cfg['excel']}")
@@ -1660,6 +1697,7 @@ def main():
                 entry[opt] = cfg[opt]
         build_guide_progress(entry)   # 机制 2：FY2026 指引 vs 年化进度
         build_review(entry)           # 品种综述（数据驱动 + 手工观点段）
+        attach_event_flags(entry, news)  # 事故/停产事件 → 公司卡片 ⚠ + 指引表备注
         commodities.append(entry)
         sec_summary = ", ".join(
             f"{s['title']} {len(s['companies'])} 家/{sum(len(c['data']) for c in s['companies'])} 数据点"
@@ -1668,19 +1706,6 @@ def main():
         n_guide = sum(1 for r in entry["guide_progress"]["rows"] if r["lo"] is not None)
         print(f"  {cfg['name']}: {sec_summary}, 日历 {len(entry['calendar'])} 条, 日志 {len(entry['changelog'])} 条, "
               f"拟合 {n_fitted} 格, 指引表 {len(entry['guide_progress']['rows'])} 行(含数值指引 {n_guide} 家)")
-
-    # ---- 信息速递（data/news.json，可选；文件缺失/解析失败按空数组处理，不阻断构建）----
-    news_file = BASE_DIR / "data" / "news.json"
-    news = []
-    if news_file.exists():
-        try:
-            raw_news = json.loads(news_file.read_text(encoding="utf-8"))
-            news = [n for n in raw_news if isinstance(n, dict)]
-            news.sort(key=lambda n: n.get("date") or "", reverse=True)  # 按日期降序，最新在前
-        except Exception as e:
-            print(f"[build] 警告：news.json 解析失败（{e}），按空数组处理")
-            news = []
-    print(f"[build] 信息速递 {len(news)} 条")
 
     site_data = {
         "build_time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
