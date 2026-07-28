@@ -40,7 +40,18 @@
 
 <script src="assets/echarts.min.js"></script>
 <script>if (typeof echarts === "undefined") document.write('<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"><\/script>');</script>
-<script src="data/data.90baa9a6.js"></script>
-<script src="assets/app.8be783fc.js"></script>
+<script src="data/data.0968088d.js"></script>
+<script src="assets/app.e27d4dad.js"></script>
+<script>
+sessionStorage.setItem("yafco_gate_ok","1");
+window.addEventListener("load", function(){
+  document.querySelectorAll("#tabs .tab").forEach(function(t){ if (t.dataset.key === "zinc") t.click(); });
+  setTimeout(function(){
+    var subs = document.querySelectorAll("#main .section-sub");
+    subs.forEach(function(s){ if (s.textContent.indexOf("C1") >= 0) s.closest(".panel").scrollIntoView({block:"center"}); });
+  }, 1200);
+});
+</script>
+
 </body>
 </html>

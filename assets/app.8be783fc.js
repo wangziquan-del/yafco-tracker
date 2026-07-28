@@ -480,8 +480,12 @@
       div.outerHTML = '<div class="hbar-fallback"><div class="hbar-note">简版条形图（当前浏览器内核不支持 ECharts，数据一致）</div>' + rowsHtml + "</div>";
       return panel;
     }
-    var inst = echarts.init(div, null, { renderer: "svg" });
-    inst.setOption(Object.assign(darkChartBase(), {
+    // 延迟初始化：此时 panel 尚未挂进文档（clientWidth=0，echarts 会量成 0 宽图）。
+    // requestAnimationFrame 回调在渲染完成后执行，容器已有真实尺寸。
+    requestAnimationFrame(function () {
+      if (!div.isConnected) return;
+      var inst = echarts.init(div, null, { renderer: "svg" });
+      inst.setOption(Object.assign(darkChartBase(), {
       grid: { left: 190, right: 110, top: 20, bottom: 34 },
       tooltip: {
         trigger: "item",
@@ -516,8 +520,9 @@
           formatter: function (p) { return labelFn(cf.items[p.dataIndex]); }
         }
       }]
-    }));
-    window.addEventListener("resize", function () { inst.resize(); });
+      }));
+      window.addEventListener("resize", function () { inst.resize(); });
+    });
     return panel;
   }
 
@@ -576,8 +581,11 @@
           div.outerHTML = '<div class="chart-fallback">图表加载失败（ECharts CDN 不可用）</div>';
           return;
         }
-        var inst = echarts.init(div, null, { renderer: "svg" });
-        inst.setOption(Object.assign(darkChartBase(), {
+        // 同 barChartPanel：延迟到挂载后再初始化，避免 0 宽图
+        requestAnimationFrame(function () {
+          if (!div.isConnected) return;
+          var inst = echarts.init(div, null, { renderer: "svg" });
+          inst.setOption(Object.assign(darkChartBase(), {
           legend: { top: 4, textStyle: { color: "#8b98a9", fontSize: 11 } },
           xAxis: { type: "category", data: seriesDefs[0].points.map(function (p) { return p.q; }), axisLabel: { rotate: 45 } },
           yAxis: { type: "value", name: currency, splitLine: { lineStyle: { color: "#1b2431" } } },
@@ -588,8 +596,9 @@
               data: sd.points.map(function (p) { return p.v; })
             };
           })
-        }));
-        charts.push(inst);
+          }));
+          charts.push(inst);
+        });
       }
       var al = commodity.costs.alphamin;
       lineChart(al.title, [{
