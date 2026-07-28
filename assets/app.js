@@ -806,6 +806,15 @@
         '<span style="color:#e8b339">符合 ' + g["符合"] + "</span> · " +
         '<span style="color:#e05d5d">不及 ' + g["不及"] + "</span>（详见下方指引表）</div>";
     }
+    // 品种级产量事件（事故/减产/复产，来自 news affects company="*"）
+    if (commodity.commodity_events && commodity.commodity_events.length) {
+      html += '<div class="co-line"><b>产量事件</b>：</div>' +
+        commodity.commodity_events.map(function (ev) {
+          var inner = "⚠ <b>" + esc(ev.date || "") + "</b> " + esc(ev.note || "");
+          return '<div class="event-flag" style="margin:2px 0">' +
+            (ev.url ? '<a href="' + esc(ev.url) + '" target="_blank" rel="noopener">' + inner + "</a>" : inner) + "</div>";
+        }).join("");
+    }
     if (rv.comment && rv.comment.lines && rv.comment.lines.length) {
       html += '<div class="review-comment"><div class="co-line"><b>研究观点</b>（' + esc(rv.comment.date) + "）：</div>" +
         rv.comment.lines.map(function (t) { return '<div class="review-line">' + esc(t) + "</div>"; }).join("") + "</div>";

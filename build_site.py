@@ -1371,7 +1371,7 @@ FY2027_OUTLOOK = {
             "力拓": "AP60 2026 年底全投→2027 首个完整年（+16 万吨置换增量，计划）",
             "美铝": "San Ciprián 重启 2026 年底恢复 75%（约 17 万吨）→2027 全年贡献（计划）",
         },
-        "total": "2027 海外新增兑现年：AP60 满产+越南多农一二期+San Ciprián+印度新增+印尼规划项目；国内 4,500 万吨天花板不变，增量全在海外，全球原铝增速约 2-3%（平台推断）；氧化铝河北新冶 740 万吨 2027Q4 投产强化原料过剩。",
+        "total": "2027 海外新增兑现年：AP60 满产+越南多农一二期+San Ciprián+印度新增+印尼规划项目；中东复产是另一大增量——两座遭袭冶炼厂恢复+EGA Al Taweelah 提前复产（海湾产能占全球约 9%，6 月产量一度 -1/3）；国内 4,500 万吨天花板不变，增量全在海外，全球原铝增速约 2-3%（平台推断）；氧化铝河北新冶 740 万吨 2027Q4 投产强化原料过剩。",
     },
     "nickel": {
         "date": "2026-07-28",
@@ -1637,8 +1637,10 @@ def extract_lithium(path):
 
 
 def attach_event_flags(entry, news):
-    """把 news.json 中带 affects 的条目（事故/停产等产量事件）挂到对应公司：
-    公司卡片加 event_flag（⚠ 行），指引表备注追加事件说明。最新条目优先。"""
+    """把 news.json 中带 affects 的条目（事故/停产等产量事件）挂到对应位置：
+    company=具体公司 → 公司卡片 ⚠ 行 + 指引表备注；company="*" → 品种级事件（entry['commodity_events']，
+    前端在品种综述展示）。新闻已按日期降序，先命中即最新。"""
+    entry["commodity_events"] = []
     for n in news:
         if n.get("commodity") != entry["name"] or not n.get("affects"):
             continue
@@ -1648,10 +1650,13 @@ def attach_event_flags(entry, news):
             if not cname:
                 continue
             flag = {"date": n.get("date"), "note": note, "url": n.get("url")}
+            if cname == "*":
+                entry["commodity_events"].append(flag)
+                continue
             for sec in entry["sections"]:
                 for c in sec["companies"]:
                     if c["name"] == cname or cname in c["name"]:
-                        c["event_flag"] = flag   # 新闻已按日期降序，先命中即最新
+                        c["event_flag"] = flag
             for r in entry.get("guide_progress", {}).get("rows", []):
                 if r["name"].split("·")[0] == cname or r["name"].startswith(cname):
                     tag = f"⚠ {flag['date']} {note}"
