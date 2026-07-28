@@ -441,14 +441,14 @@
         '<td style="text-align:left;font-family:inherit;white-space:normal;min-width:150px;color:#7fa3d0">' + esc(r.fy2027 || "-") + "</td>" +
         '<td style="text-align:left;font-family:inherit;color:#5b6879">' + esc(r.note || "") + "</td></tr>";
     });
+    if (commodity.outlook2027 && commodity.outlook2027.total) {
+      html += '<tr class="total-row outlook2027-row"><td colspan="2"><b>2027 品种总量展望</b>（' +
+        esc(commodity.outlook2027.date) + "）</td>" +
+        '<td colspan="8" style="text-align:left;font-family:inherit;white-space:normal">' +
+        esc(commodity.outlook2027.total) + "</td></tr>";
+    }
     wrap.innerHTML = html + "</tbody></table>";
     panel.appendChild(wrap);
-    if (commodity.outlook2027 && commodity.outlook2027.total) {
-      var o27 = el("div", "outlook2027");
-      o27.innerHTML = "<b>2027 品种总量展望</b>（" + esc(commodity.outlook2027.date) +
-        "）：" + esc(commodity.outlook2027.total);
-      panel.appendChild(o27);
-    }
     section.appendChild(panel);
     container.appendChild(section);
   }
