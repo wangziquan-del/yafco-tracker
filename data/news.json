@@ -16,6 +16,54 @@
     ]
   },
   {
+    "date": "2026-07-29",
+    "commodity": "锌",
+    "category": "公司",
+    "impact": "high",
+    "title": "Glencore H1 锌产量 36.56 万吨（-21%），指引 700-740kt 维持但隐含同口径上调",
+    "summary": "Glencore H1'26（官方）：锌 365.6kt（-21%，Lady Loretta 寿命终结 -51kt、Antamina 锌品位降 -39.2kt、Kidd 6/1 出售）。FY26 锌指引 700-740kt 维持——但未扣除 Kidd 出售损失的约 20kt，等于同口径隐含上调。分资产 Q2：Kazzinc 53.7（事故后恢复）、McArthur River 70.0、Mount Isa 39.1（资源渐枯竭）、Kidd 8.3（已售）、Antamina 权益 17.6（-50%）。",
+    "source": "Glencore H1 2026 Production Report",
+    "url": "https://www.glencore.com/investors/reports",
+    "affects": [
+      {
+        "company": "Glencore",
+        "note": "H1锌-21%（Lady Loretta终结/Antamina品位/Kidd出售）；指引维持但隐含同口径上调"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-29",
+    "commodity": "铜",
+    "category": "公司",
+    "impact": "mid",
+    "title": "Glencore H1 铜产量 39.7 万吨（+15%），非洲铜与 Antamina 驱动",
+    "summary": "Glencore H1'26：铜 397.0kt（+15%，非洲铜 +55kt、Antamina +27.7kt），Q2 197.4kt。FY26 铜指引 810-870kt 维持（同样未扣 Kidd 出售约 11kt，隐含同口径上调）。",
+    "source": "Glencore H1 2026 Production Report",
+    "url": "https://www.glencore.com/investors/reports",
+    "affects": [
+      {
+        "company": "Glencore",
+        "note": "H1铜+15%（非洲铜+55/Antamina+27.7kt），指引维持"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-29",
+    "commodity": "镍",
+    "category": "公司",
+    "impact": "low",
+    "title": "Glencore H1 镍产量 35.8kt（-2%），INO/Murrin 平稳",
+    "summary": "Glencore H1'26：镍 35.8kt（-2%），Q2 INO 10.4kt、Murrin 8.2kt；FY26 镍指引 70-80kt 维持。",
+    "source": "Glencore H1 2026 Production Report",
+    "url": "https://www.glencore.com/investors/reports",
+    "affects": [
+      {
+        "company": "Glencore",
+        "note": "H1镍-2%，INO/Murrin 平稳，指引维持"
+      }
+    ]
+  },
+  {
     "date": "2026-07-28",
     "commodity": "铝",
     "category": "政策",
