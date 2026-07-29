@@ -232,6 +232,16 @@
     "url": "https://finance.sina.com.cn/roll/2026-07-09/doc-inihczph8267646.shtml"
   },
   {
+    "date": "2026-07-09",
+    "commodity": "锌",
+    "category": "供应",
+    "impact": "mid",
+    "title": "韩国 Young Poong Seokpo 冶炼厂硫酸装置火灾，锌产量影响待核实",
+    "summary": "Seokpo 锌冶炼厂（锌约 40 万吨/年）硫酸车间起火（一级应急响应），当日 LME 锌涨 3.4%；锌主线是否受损未披露，情绪冲击大于已证实量级。该厂 2025/2 曾因违规排放被法院判令停产 58 天（约 4.6 万吨），2025 全年营业亏损 2,592 亿韩元，属高风险资产。",
+    "source": "joiff/discoveryalert",
+    "url": "https://www.joiff.com/south-korea-fire-at-young-poong-zinc-smelter-raises-concerns-over-sulphuric-acid-supply/"
+  },
+  {
     "date": "2026-07-07",
     "commodity": "铝",
     "category": "供应",
@@ -288,6 +298,22 @@
     "url": "https://www.douyin.com/video/7638805844684204657"
   },
   {
+    "date": "2026-05-13",
+    "commodity": "锌",
+    "category": "供应",
+    "impact": "mid",
+    "title": "Nexa Cajamarquilla 火灾停产→6月中复满产，Q2 影响约 7,000 吨",
+    "summary": "秘鲁 Cajamarquilla（拉美最大锌冶炼厂，34.4 万吨/年）5/13 变电站火灾全面停产，电解线 5/29 全开、铸造线 6 月中全恢复；Q2 影响约 7,000 吨（约全年 2%），销售计划维持。与 Kazzinc 爆炸叠加引爆 5 月 LME 近四年新高。",
+    "source": "Nexa 公告（5/13、5/29）",
+    "url": "https://www.stockwatch.com/News/Item/U-299099-U!NEXA-20260529/U/NEXA",
+    "affects": [
+      {
+        "company": "NEXA",
+        "note": "Cajamarquilla 5/13 火灾停产，Q2 影响约 7,000 吨，6 月中复满产"
+      }
+    ]
+  },
+  {
     "date": "2026-05-07",
     "commodity": "镍",
     "category": "公司",
@@ -296,6 +322,23 @@
     "source": "Sherritt 官网公告 / Q1 2026 MD&A",
     "url": "https://sherritt.com/wp-content/uploads/2026/06/Q1-2026-Interim-Report-VF.pdf",
     "impact": "mid"
+  },
+  {
+    "date": "2026-05-05",
+    "commodity": "锌",
+    "category": "供应",
+    "impact": "mid",
+    "title": "Kazzinc 哈国最大锌厂爆炸 3 死 5 伤，锌铅两厂降负荷运行",
+    "summary": "Glencore 控股 Kazzinc Ust-Kamenogorsk 冶炼厂（2026 锌锭计划约 15 万吨）除尘器爆炸起火，3 死 5 伤、部分厂房坍塌；主产线据称未受损但锌+铅两厂降负荷，政府调查或拉长恢复期，7 月恢复状态未见公告（待核实）。",
+    "source": "Interfax/Reuters",
+    "url": "https://interfax.com/newsroom/top-stories/117518/",
+    "affects": [
+      {
+        "company": "Glencore",
+        "project": "Kazzinc",
+        "note": "5/5 冶炼厂爆炸 3 死 5 伤，锌厂降负荷运行，恢复时待核实"
+      }
+    ]
   },
   {
     "date": "2026-05-01",
@@ -336,5 +379,25 @@
     "summary": "财经创作者测算全球第二大铜矿复产不及预期对 2026 年供需平衡表的影响，叠加「铜矿四降产量」等供给收缩叙事发酵；作为市场情绪指标参考，具体数据以 FreePort 季报为准。传言·情绪指标。",
     "source": "抖音@姜姜的财经世界",
     "url": "https://www.douyin.com/video/7632572221927525682"
+  },
+  {
+    "date": "2026-04-01",
+    "commodity": "锌",
+    "category": "供应",
+    "impact": "high",
+    "title": "Nyrstar Hobart 减产 25%「无限期」：低 TC+能源成本最典型受害者",
+    "summary": "Nyrstar Hobart（28 万吨/年）2025/4 起减产约 25%（约 6-7 万吨/年）至今超 15 个月无恢复公告，靠澳联邦/州政府两轮共 2.4 亿澳元注资续命；Port Pirie 救助谈判仍在拉锯。持续性支撑欧美现货升水，是本轮冶炼端出清的标志性事件。",
+    "source": "Nyrstar/SMM/Batteries International",
+    "url": "https://www.batteriesinternational.com/2025/06/06/australia-lead-and-zinc-processing-under-pressure-nyrstar-warns/"
+  },
+  {
+    "date": "2026-03-31",
+    "commodity": "锌",
+    "category": "供应",
+    "impact": "high",
+    "title": "Toho Zinc Annaka 永久退出锌冶炼（约 11 万吨），本周期唯一明确产能出清",
+    "summary": "日本 Toho Zinc 事业振兴计划落地：Annaka 冶炼厂 2025/3 停主要设施、FY2025 末（2026/3）完成锌冶炼全面撤退，约 11 万吨产能永久退出；主因长期亏损+TC 低迷。叠加 Glencore Portovesme 二次锌线关闭，坐实中国以外精炼锌 2025 年 -1.6% 的减量叙事。",
+    "source": "Toho Zinc 官方公告/SMM",
+    "url": "https://www.toho-zinc.co.jp/eng/news/pdf/news_20250627.pdf"
   }
 ]
