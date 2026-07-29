@@ -285,3 +285,32 @@ a.news-title:hover { color: var(--accent); text-decoration: underline; }
 .dis-dir.down { color: #c0392b; background: rgba(192,57,43,.10); border: 1px solid rgba(192,57,43,.30); }
 .dis-dir.up   { color: #1e8e5a; background: rgba(30,142,90,.10);  border: 1px solid rgba(30,142,90,.30); }
 .dis-ongoing { display: inline-block; margin-left: 4px; padding: 0 4px; border-radius: 4px; font-size: 11px; color: var(--accent-dim); background: rgba(184,145,47,.12); border: 1px solid rgba(184,145,47,.35); }
+
+/* 产量表格：冻结表头 + 冻结首列（类 Excel 冻结窗格） */
+.table-wrap.freeze { max-height: 72vh; overflow: auto; }
+.freeze .data-table thead th { position: sticky; top: 0; z-index: 5; background: var(--panel); box-shadow: 0 1px 0 var(--border); }
+.freeze .data-table th:first-child, .freeze .data-table td:first-child { position: sticky; left: 0; z-index: 4; background: var(--panel); box-shadow: 1px 0 0 var(--border); }
+.freeze .data-table thead th:first-child { z-index: 7; }
+.freeze .data-table tr.total-row td { background: var(--panel2); }
+
+/* 表格筛选工具条（期间/公司折叠隐藏） */
+.tbl-filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; font-size: 12px; }
+.tbl-filter details.tf { position: relative; }
+.tbl-filter details.tf summary {
+  cursor: pointer; padding: 3px 10px; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--panel2); color: var(--muted); user-select: none; list-style: none;
+}
+.tbl-filter details.tf summary::-webkit-details-marker { display: none; }
+.tbl-filter details.tf summary:hover { color: var(--accent-dim); border-color: var(--accent-dim); }
+.tbl-filter .tf-n { color: #c0392b; font-weight: 700; }
+.tbl-filter .tf-body {
+  position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; min-width: 240px;
+  max-height: 320px; overflow: auto; background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; box-shadow: 0 6px 24px rgba(60,50,20,.15); padding: 10px 12px;
+}
+.tf-group { margin-bottom: 6px; }
+.tf-master { display: block; font-weight: 700; color: var(--text); margin-bottom: 2px; cursor: pointer; }
+.tf-item { display: inline-block; margin: 2px 10px 2px 0; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.tf-reset { padding: 3px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); color: var(--muted); cursor: pointer; font-size: 12px; }
+.tf-reset:hover { color: var(--accent-dim); border-color: var(--accent-dim); }
+.tf-hint { color: var(--faint); }

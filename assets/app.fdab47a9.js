@@ -147,6 +147,7 @@
 
   /* ================= 区块：产量（表格 + 图表） ================= */
   var viewState = {}; // sectionDomId -> "quarter" | "year"
+  var filterState = {}; // sectionDomId -> { per:{期间:true=隐藏}, comp:{公司key:true=隐藏} }
 
   function renderProductionSection(container, sec, commodityKey, secKey, defaultView) {
     var domId = commodityKey + "-" + secKey;
@@ -174,23 +175,36 @@
 
     var tablePanel = el("div", "panel");
     tablePanel.style.marginTop = "14px";
-    var wrap = el("div", "table-wrap");
+    var filterBar = el("div", "tbl-filter");
+    tablePanel.appendChild(filterBar);
+    var wrap = el("div", "table-wrap freeze");
     tablePanel.appendChild(wrap);
     section.appendChild(tablePanel);
     container.appendChild(section);
 
     var chartInst = null;
+    var fState = filterState[domId] = filterState[domId] || { per: {}, comp: {} };
+
+    function compKey(c) { return c.name + (c.project ? "·" + c.project : ""); }
+    function prevPeriod(p) {
+      var m = /^(\d{4})Q(\d)$/.exec(p);
+      if (m) return (parseInt(m[1], 10) - 1) + "Q" + m[2];
+      if (/^\d{4}$/.test(p)) return String(parseInt(p, 10) - 1);
+      return null;
+    }
 
     function periods() {
       return viewState[domId] === "quarter" ? sec.quarters : sec.years;
     }
 
     function renderTable() {
-      var ps = periods();
+      var ps = periods().filter(function (p) { return !fState.per[p]; });
+      var comps = sec.companies.filter(function (c) { return !fState.comp[compKey(c)]; });
+      var compFiltered = comps.length !== sec.companies.length;
       var html = '<table class="data-table"><thead><tr><th>公司</th><th>国家/地区</th>';
       ps.forEach(function (p) { html += "<th>" + esc(p) + "</th>"; });
       html += "<th>最新同比</th></tr></thead><tbody>";
-      sec.companies.forEach(function (c) {
+      comps.forEach(function (c) {
         var label = esc(c.name) +
           (c.est ? '<sup style="color:#b8912f" title="含估算/推算：' + esc(c.est_note || "") + '">†</sup>' : "") +
           (c.project ? ' <span style="color:#5b6879">· ' + esc(c.project) + "</span>" : "");
@@ -209,17 +223,107 @@
         var lp = latestPeriodWithData(c.data, ps, []);
         html += "<td>" + (lp && c.yoy[lp] !== undefined ? fmtPct(c.yoy[lp]) : '<span class="flat">—</span>') + "</td></tr>";
       });
-      // 总计行
-      html += '<tr class="total-row"><td>合计</td><td></td>';
+      // 总计行：默认用同口径预计算合计；公司筛选后按可见公司重算（简单同比）
+      html += '<tr class="total-row"><td>合计' +
+        (compFiltered ? ' <small style="font-weight:400">（可见公司）</small>' : "") + "</td><td></td>";
       ps.forEach(function (p) {
-        var v = sec.total.data[p];
-        var y = sec.total.yoy[p];
+        var v, y;
+        if (!compFiltered) { v = sec.total.data[p]; y = sec.total.yoy[p]; }
+        else {
+          var s = 0, seen = false;
+          comps.forEach(function (c) { var x = c.data[p]; if (x !== null && x !== undefined) { s += x; seen = true; } });
+          v = seen ? s : null;
+          var pp = prevPeriod(p), sp = 0, seenp = false;
+          if (pp) comps.forEach(function (c) { var x = c.data[pp]; if (x !== null && x !== undefined) { sp += x; seenp = true; } });
+          y = (v !== null && seenp && sp) ? (v - sp) / sp : undefined;
+        }
         html += v === null || v === undefined
           ? '<td class="na">—</td>'
           : "<td>" + fmtNum(v) + (y !== undefined ? " <small>" + fmtPct(y) + "</small>" : "") + "</td>";
       });
       html += "<td></td></tr></tbody></table>";
       wrap.innerHTML = html;
+    }
+
+    // 表格筛选工具条：期间（季度视图按年分组，可整年折叠）+ 公司两个多选下拉；
+    // 只作用于表格，图表系列用 ECharts 图例单独开关
+    function renderFilterBar() {
+      var ps = periods();
+      var groups = [];
+      if (viewState[domId] === "quarter") {
+        var byYear = {};
+        ps.forEach(function (p) { var y = p.slice(0, 4); (byYear[y] = byYear[y] || []).push(p); });
+        Object.keys(byYear).sort().forEach(function (y) { groups.push({ label: y + " 年", items: byYear[y] }); });
+      } else {
+        ps.forEach(function (p) { groups.push({ label: p, items: [p] }); });
+      }
+      filterBar.innerHTML =
+        '<details class="tf"><summary>期间筛选<b class="tf-n"></b></summary><div class="tf-body">' +
+        groups.map(function (g, gi) {
+          var inner = g.items.length > 1
+            ? g.items.map(function (p) {
+                return '<label class="tf-item"><input type="checkbox" data-per="' + esc(p) + '"> ' + esc(p) + "</label>";
+              }).join("")
+            : "";
+          return '<div class="tf-group"><label class="tf-master"><input type="checkbox" data-master="' + gi + '"> ' +
+            esc(g.label) + "</label>" + inner + "</div>";
+        }).join("") +
+        '</div></details>' +
+        '<details class="tf"><summary>公司筛选<b class="tf-n"></b></summary><div class="tf-body">' +
+        sec.companies.map(function (c) {
+          return '<label class="tf-item"><input type="checkbox" data-comp="' + esc(compKey(c)) + '"> ' + esc(compKey(c)) + "</label>";
+        }).join("") +
+        '</div></details>' +
+        '<button class="tf-reset" type="button">重置筛选</button><span class="tf-hint"></span>';
+
+      function refresh() {  // 只同步勾选态/角标/提示，不重建 DOM（保持下拉展开状态）
+        filterBar.querySelectorAll("[data-per]").forEach(function (box) {
+          box.checked = !fState.per[box.getAttribute("data-per")];
+        });
+        filterBar.querySelectorAll("[data-comp]").forEach(function (box) {
+          box.checked = !fState.comp[box.getAttribute("data-comp")];
+        });
+        filterBar.querySelectorAll("[data-master]").forEach(function (box) {
+          var g = groups[+box.getAttribute("data-master")];
+          var off = g.items.filter(function (p) { return fState.per[p]; }).length;
+          box.checked = off === 0;
+          box.indeterminate = off > 0 && off < g.items.length;
+        });
+        var np = ps.filter(function (p) { return fState.per[p]; }).length;
+        var nc = sec.companies.filter(function (c) { return fState.comp[compKey(c)]; }).length;
+        var sns = filterBar.querySelectorAll(".tf-n");
+        sns[0].textContent = np ? " 隐 " + np : "";
+        sns[1].textContent = nc ? " 隐 " + nc : "";
+        filterBar.querySelector(".tf-hint").textContent = (np || nc)
+          ? "已隐藏 " + np + " 个期间、" + nc + " 家公司" +
+            (nc ? "；合计按可见公司重算（简单同比）" : "") + "。图表用图例单独开关"
+          : "可按年/季度、按公司折叠隐藏；图表系列用图例开关";
+      }
+      filterBar.querySelectorAll("[data-per]").forEach(function (box) {
+        box.addEventListener("change", function () {
+          var p = box.getAttribute("data-per");
+          if (box.checked) delete fState.per[p]; else fState.per[p] = true;
+          refresh(); renderTable();
+        });
+      });
+      filterBar.querySelectorAll("[data-master]").forEach(function (box) {
+        box.addEventListener("change", function () {
+          var g = groups[+box.getAttribute("data-master")];
+          g.items.forEach(function (p) { if (box.checked) delete fState.per[p]; else fState.per[p] = true; });
+          refresh(); renderTable();
+        });
+      });
+      filterBar.querySelectorAll("[data-comp]").forEach(function (box) {
+        box.addEventListener("change", function () {
+          var k = box.getAttribute("data-comp");
+          if (box.checked) delete fState.comp[k]; else fState.comp[k] = true;
+          refresh(); renderTable();
+        });
+      });
+      filterBar.querySelector(".tf-reset").addEventListener("click", function () {
+        fState.per = {}; fState.comp = {}; refresh(); renderTable();
+      });
+      refresh();
     }
 
     function renderChart() {
@@ -302,14 +406,14 @@
 
     bq.addEventListener("click", function () {
       viewState[domId] = "quarter"; bq.className = "active"; by.className = "";
-      renderTable(); renderChart();
+      renderFilterBar(); renderTable(); renderChart();
     });
     by.addEventListener("click", function () {
       viewState[domId] = "year"; by.className = "active"; bq.className = "";
-      renderTable(); renderChart();
+      renderFilterBar(); renderTable(); renderChart();
     });
 
-    renderTable(); renderChart();
+    renderFilterBar(); renderTable(); renderChart();
     window.addEventListener("resize", function () { if (chartInst) chartInst.resize(); });
   }
 
