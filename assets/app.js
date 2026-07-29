@@ -192,12 +192,14 @@
       if (/^\d{4}$/.test(p)) return String(parseInt(p, 10) - 1);
       return null;
     }
-    // 按一级公司（c.name）分组：同名多项目 → 父行（小计，可折叠）+ 子行（项目）
+    // 按一级公司分组：优先 c.group（母公司映射，如 Vedanta 系/Boliden 两厂），否则按 c.name；
+    // 多行同组 → 父行（小计，可折叠）+ 子行（项目）
     function buildGroups(comps) {
       var groups = [], byName = {};
       comps.forEach(function (c) {
-        var g = byName[c.name];
-        if (!g) { g = byName[c.name] = { name: c.name, items: [] }; groups.push(g); }
+        var key = c.group || c.name;
+        var g = byName[key];
+        if (!g) { g = byName[key] = { name: key, items: [] }; groups.push(g); }
         g.items.push(c);
       });
       return groups;

@@ -131,11 +131,31 @@ TIN_CALIBER_NOTES = [
 
 ZINC_CALIBER_NOTES = [
     "锌矿产量单位为万金属吨；锌锭冶炼产量单位为万吨精炼锌。",
+    "表格一级公司分组：Vedanta/Zinc India/Zinc International 三行同属韦丹塔集团（HZL印度/Gamsberg南非/BMM）；锌锭表 Boliden-Odda/Kokkola、Nexa 两厂、HZL(Zawar & Rampur) 等按母公司归组（build_site.py parent_map 维护）。",
     "Nyrstar 不披露季度产量财报，冶炼合计中不含 Nyrstar。",
     "锌矿总计行为表内公司合计；OZ 矿（Ozernoye）为非财报披露口径。",
     "资本开支币种各异，未折算：Teck 部分口径为加元（CAD）、Boliden 为瑞典克朗（SEK）、Vedanta/HZL 为印度卢比（INR crore），比较时注意口径说明列。",
     "Ivanhoe Kipushi 产量与资本开支指引为项目 100% 口径。",
 ]
+
+# 锌 · 一级公司（母公司）归组表：行名 → 表格分组父标签。
+# 只收「同集团多行」的映射；单公司单项目（如 Ivanhoe）不写、保持独立行。
+# 其它品种如需归组，在 COMMODITIES 对应条目加 parent_map 即可（镍/铜同名行已自动成组）。
+ZINC_PARENT = {
+    # 锌矿：韦丹塔集团三行（HZL 印度 / Gamsberg 南非 / BMM）
+    "Vedanta": "Vedanta（韦丹塔）",
+    "Zinc India": "Vedanta（韦丹塔）",
+    "Zinc International": "Vedanta（韦丹塔）",
+    "TECK": "Teck",
+    # 锌锭冶炼
+    "Boliden-Odda": "BOLIDEN",
+    "Boliden-Kokkola": "BOLIDEN",
+    "Três Marias": "NEXA",
+    "Cajamarquilla": "NEXA",
+    "Zawar & Rampura": "Vedanta（韦丹塔）",
+    "Teck-Trail": "Teck",
+    "Torreon": "Peñoles",
+}
 
 # ---------------------------------------------------------------------------
 # 铝 · 披露日历（公司粒度；季报≈季后数周，财年口径见口径说明）
@@ -323,6 +343,7 @@ COMMODITIES = {
         "calendar": ZINC_CALENDAR,
         "caliber_notes": ZINC_CALIBER_NOTES,
         "default_view": "quarter",
+        "parent_map": ZINC_PARENT,
     },
     "aluminum": {
         "name": "铝",
@@ -1737,6 +1758,14 @@ def main():
         for opt in ("unit_mine", "unit_refined"):
             if opt in cfg:
                 entry[opt] = cfg[opt]
+        # 一级公司归组（可选 parent_map）：同集团多行在产量表中聚合为可折叠父行
+        pmap2 = cfg.get("parent_map") or {}
+        if pmap2:
+            for _sec in entry["sections"]:
+                for _c in _sec["companies"]:
+                    _g = pmap2.get(_c["name"])
+                    if _g:
+                        _c["group"] = _g
         build_guide_progress(entry)   # 机制 2：FY2026 指引 vs 年化进度
         build_review(entry)           # 品种综述（数据驱动 + 手工观点段）
         attach_event_flags(entry, news)  # 事故/停产事件 → 公司卡片 ⚠ + 指引表备注
