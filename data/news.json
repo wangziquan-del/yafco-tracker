@@ -377,14 +377,14 @@
     "category": "供应",
     "impact": "mid",
     "title": "Kazzinc 哈国最大锌厂爆炸 3 死 5 伤，锌铅两厂降负荷运行",
-    "summary": "Glencore 控股 Kazzinc Ust-Kamenogorsk 冶炼厂（2026 锌锭计划约 15 万吨）除尘器爆炸起火，3 死 5 伤、部分厂房坍塌；主产线据称未受损但锌+铅两厂降负荷，政府调查或拉长恢复期，7 月恢复状态未见公告（待核实）。",
+    "summary": "Glencore 控股 Kazzinc Ust-Kamenogorsk 冶炼厂（2026 锌锭计划约 15 万吨）除尘器爆炸起火，3 死 5 伤、部分厂房坍塌；主产线据称未受损但锌+铅两厂降负荷。7/29 Glencore H1 报告确认 Q2 已事故后恢复（Kazzinc Q2 锌 53.7kt）；2027 为事故低基数上的正常化年份，但集团层面 Lady Loretta 寿命终结+Mount Isa 枯竭为结构性减量。",
     "source": "Interfax/Reuters",
     "url": "https://interfax.com/newsroom/top-stories/117518/",
     "affects": [
       {
         "company": "Glencore",
         "project": "Kazzinc",
-        "note": "5/5 冶炼厂爆炸 3 死 5 伤，锌厂降负荷运行，恢复时待核实"
+        "note": "5/5 冶炼厂爆炸 3 死 5 伤，锌厂降负荷；Q2 已事故后恢复（7/29 Glencore H1 确认），2027 低基数正常化"
       }
     ]
   },
