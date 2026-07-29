@@ -1696,6 +1696,28 @@ def main():
             news = []
     print(f"[build] 信息速递 {len(news)} 条")
 
+    # ---- 近3个月供应扰动梳理（data/disruptions.json，可选；缺失/解析失败按空处理，不阻断构建）----
+    dis_file = BASE_DIR / "data" / "disruptions.json"
+    disruptions = []
+    if dis_file.exists():
+        try:
+            raw_dis = json.loads(dis_file.read_text(encoding="utf-8"))
+            disruptions = [d for d in raw_dis.get("items", []) if isinstance(d, dict)]
+        except Exception as e:
+            print(f"[build] 警告：disruptions.json 解析失败（{e}），按空数组处理")
+            disruptions = []
+    valid_names = {cfg["name"] for cfg in COMMODITIES.values()}
+    bad = [d.get("company") for d in disruptions if d.get("commodity") not in valid_names]
+    if bad:
+        print(f"[build] 警告：disruptions.json 存在未知品种条目：{bad}")
+    # 排序：持续事件(ongoing)优先，其后按日期降序（两次稳定排序实现）
+    disruptions.sort(key=lambda d: d.get("date") or "", reverse=True)
+    disruptions.sort(key=lambda d: not d.get("ongoing"))
+    dis_by_name = {}
+    for d in disruptions:
+        dis_by_name.setdefault(d.get("commodity"), []).append(d)
+    print(f"[build] 供应扰动梳理 {len(disruptions)} 条（{', '.join(f'{k}{len(v)}' for k, v in dis_by_name.items())}）")
+
     commodities = []
     for key, cfg in COMMODITIES.items():
         print(f"[build] 抽取 {cfg['name']} <- {cfg['excel']}")
@@ -1718,6 +1740,7 @@ def main():
         build_guide_progress(entry)   # 机制 2：FY2026 指引 vs 年化进度
         build_review(entry)           # 品种综述（数据驱动 + 手工观点段）
         attach_event_flags(entry, news)  # 事故/停产事件 → 公司卡片 ⚠ + 指引表备注
+        entry["disruptions"] = dis_by_name.get(cfg["name"], [])  # 近3个月供应扰动梳理
         commodities.append(entry)
         sec_summary = ", ".join(
             f"{s['title']} {len(s['companies'])} 家/{sum(len(c['data']) for c in s['companies'])} 数据点"

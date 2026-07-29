@@ -708,6 +708,40 @@
     container.appendChild(section);
   }
 
+  /* ================= 区块：近3个月供应扰动梳理 ================= */
+  function renderDisruptions(container, commodity) {
+    var items = commodity.disruptions || [];
+    if (!items.length) return;  // 无数据不渲染该区块
+    var section = el("div", "section");
+    var head = el("div", "section-head");
+    head.appendChild(el("div", "section-title", "近 3 个月供应扰动梳理"));
+    head.appendChild(el("div", "section-sub",
+      items.length + " 条 · 含影响仍在持续的更早事件（标「持续」）· 恢复进展与 2027 预期见末列"));
+    section.appendChild(head);
+    var panel = el("div", "panel");
+    var wrap = el("div", "table-wrap");
+    var html = '<table class="data-table dis-table"><thead><tr>' +
+      "<th>时间</th><th>公司/资产</th><th>国家</th><th>类型</th><th>产能/规模</th><th>影响量级</th><th>恢复进展与 2027 预期</th><th>来源</th>" +
+      "</tr></thead><tbody>";
+    items.forEach(function (d) {
+      var dirBadge = d.dir === "up"
+        ? '<span class="dis-dir up">增</span>'
+        : '<span class="dis-dir down">减</span>';
+      var dateHtml = esc(d.date || "") + (d.ongoing ? ' <span class="dis-ongoing">持续</span>' : "");
+      var srcHtml = esc(d.source || "") +
+        (d.url ? ' <a href="' + esc(d.url) + '" target="_blank" rel="noopener">→</a>' : "");
+      html += "<tr><td class='date'>" + dateHtml + "</td><td>" + esc(d.company || "") + "</td><td>" +
+        esc(d.country || "") + "</td><td>" + dirBadge + " " + esc(d.type || "") + "</td><td>" +
+        esc(d.capacity || "—") + "</td><td>" + esc(d.impact || "") + "</td><td>" +
+        esc(d.recovery || "") + "</td><td>" + srcHtml + "</td></tr>";
+    });
+    wrap.innerHTML = html + "</tbody></table>";
+    panel.appendChild(wrap);
+    section.appendChild(panel);
+    container.appendChild(section);
+  }
+
+
   /* ================= 页面：总览 ================= */
   function renderOverview(main) {
     var DATA = window.SITE_DATA;
@@ -835,6 +869,8 @@
       return n.commodity === commodity.name || n.commodity === "宏观";
     });
     renderNewsSection(main, newsItems, 4);
+    // 近3个月供应扰动梳理（减停产/复产事件表，含恢复与 2027 预期）
+    renderDisruptions(main, commodity);
     // 品种综述紧随其后
     renderReview(main, commodity);
     // 数据板块按品种配置驱动（锡/锌=2 个板块，铝=3 个板块，可任意扩展）
