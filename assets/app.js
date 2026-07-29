@@ -132,18 +132,18 @@
   function darkChartBase() {
     return {
       backgroundColor: "transparent",
-      textStyle: { color: "#8b98a9", fontFamily: "Microsoft YaHei, sans-serif" },
+      textStyle: { color: "#6d6248", fontFamily: "Microsoft YaHei, sans-serif" },
       tooltip: {
         trigger: "axis",
-        backgroundColor: "#182030", borderColor: "#232d3d",
-        textStyle: { color: "#d6dde6", fontSize: 12 }
+        backgroundColor: "#fdfaf3", borderColor: "#ddd5c4",
+        textStyle: { color: "#2e2a22", fontSize: 12 }
       },
       grid: { left: 60, right: 60, top: 50, bottom: 40 }
     };
   }
-  var PALETTE = ["#e8b339", "#4fa3ff", "#ff5c6c", "#2fd08c", "#b07fe8", "#ff9a4d", "#4dd6d0",
-    "#d45f9e", "#9fc25a", "#7f96ff", "#e8d44d", "#8b98a9", "#c87f4f", "#5ab0c2", "#a3a3ff",
-    "#e87f7f", "#6fc26f", "#c2a35a", "#7fc2e8", "#d0a0e8", "#90b060"];
+  var PALETTE = ["#b8912f", "#4a6b8a", "#c0453e", "#2a9e6e", "#7a5f9e", "#b06a3b", "#2aa89e",
+    "#a04a6e", "#7a9a3a", "#5a6fb0", "#c9a52e", "#6d6248", "#a06a3a", "#3a8a9e", "#7a7ac0",
+    "#c05a5a", "#4a9a4a", "#a88a3a", "#4a8ab0", "#9a7ab0", "#7a9a3a"];
 
   /* ================= 区块：产量（表格 + 图表） ================= */
   var viewState = {}; // sectionDomId -> "quarter" | "year"
@@ -192,7 +192,7 @@
       html += "<th>最新同比</th></tr></thead><tbody>";
       sec.companies.forEach(function (c) {
         var label = esc(c.name) +
-          (c.est ? '<sup style="color:#e8b339" title="含估算/推算：' + esc(c.est_note || "") + '">†</sup>' : "") +
+          (c.est ? '<sup style="color:#b8912f" title="含估算/推算：' + esc(c.est_note || "") + '">†</sup>' : "") +
           (c.project ? ' <span style="color:#5b6879">· ' + esc(c.project) + "</span>" : "");
         var nameTitle = c.est && c.est_note ? ' title="含估算/推算：' + esc(c.est_note) + '"' : "";
         html += "<tr><td" + nameTitle + ">" + label + "</td><td>" + esc(c.country || "—") + "</td>";
@@ -244,7 +244,7 @@
             var v = c.data[p] === undefined ? null : c.data[p];
             // 拟合季度：低透明度 + 琥珀色虚线描边区分
             if (v !== null && c.est_q && c.est_q[p]) {
-              return { value: v, itemStyle: { opacity: 0.45, borderColor: "#e8b339", borderWidth: 1, borderType: "dashed" } };
+              return { value: v, itemStyle: { opacity: 0.45, borderColor: "#b8912f", borderWidth: 1, borderType: "dashed" } };
             }
             return v;
           })
@@ -253,19 +253,19 @@
       series.push({
         name: "合计同比", type: "line", yAxisIndex: 1,
         symbol: "circle", symbolSize: 6,
-        lineStyle: { color: "#e8b339", width: 2, type: "dashed" },
-        itemStyle: { color: "#e8b339" },
+        lineStyle: { color: "#b8912f", width: 2, type: "dashed" },
+        itemStyle: { color: "#b8912f" },
         data: ps.map(function (p) {
           var y = sec.total.yoy[p];
           return y === undefined || y === null ? null : +(y * 100).toFixed(2);
         })
       });
       var opt = Object.assign(darkChartBase(), {
-        legend: { type: "scroll", top: 4, textStyle: { color: "#8b98a9", fontSize: 11 } },
+        legend: { type: "scroll", top: 4, textStyle: { color: "#6d6248", fontSize: 11 } },
         tooltip: {
           trigger: "axis",
-          backgroundColor: "#182030", borderColor: "#232d3d",
-          textStyle: { color: "#d6dde6", fontSize: 12 },
+          backgroundColor: "#fdfaf3", borderColor: "#ddd5c4",
+          textStyle: { color: "#2e2a22", fontSize: 12 },
           formatter: function (params) {
             var s = esc(params[0].axisValue);
             var notes = [];
@@ -273,22 +273,22 @@
               if (p.value === null || p.value === undefined) return;
               s += "<br/>" + p.marker + esc(p.seriesName) + "：" + fmtNum(p.value) + (p.seriesName === "合计同比" ? "%" : "");
               if (estQBySeries[p.seriesName] && estQBySeries[p.seriesName][p.axisValue]) {
-                s += " <span style='color:#e8b339'>(拟合)</span>";
+                s += " <span style='color:#b8912f'>(拟合)</span>";
               }
               if (estNotes[p.seriesName] && notes.indexOf(p.seriesName) < 0) notes.push(p.seriesName);
             });
             if (notes.length) {
               var first = estNotes[notes[0]] || "";
-              s += "<br/><span style='color:#e8b339;font-size:11px'>† 含估算/推算：" +
+              s += "<br/><span style='color:#b8912f;font-size:11px'>† 含估算/推算：" +
                 esc(first.length > 160 ? first.slice(0, 160) + "…" : first) +
                 (notes.length > 1 ? "（另有 " + (notes.length - 1) + " 条，详见表格公司名悬停）" : "") + "</span>";
             }
             return s;
           }
         },
-        xAxis: { type: "category", data: ps, axisLine: { lineStyle: { color: "#232d3d" } } },
+        xAxis: { type: "category", data: ps, axisLine: { lineStyle: { color: "#ddd5c4" } } },
         yAxis: [
-          { type: "value", name: sec.unit, splitLine: { lineStyle: { color: "#1b2431" } } },
+          { type: "value", name: sec.unit, splitLine: { lineStyle: { color: "#e7e0cf" } } },
           {
             type: "value", name: "同比%", position: "right",
             splitLine: { show: false },
@@ -350,7 +350,7 @@
       var lp = latestPeriodWithData(c.data, section.quarters, section.years);
       var isAnnual = lp !== null && /^\d{4}$/.test(lp);
       var headHtml = '<div class="co-head"><span class="co-name">' + esc(c.name) +
-        (c.est ? '<sup style="color:#e8b339">†</sup>' : "") +
+        (c.est ? '<sup style="color:#b8912f">†</sup>' : "") +
         (c.project ? ' <span style="font-weight:400;color:#8b98a9;font-size:12px">· ' + esc(c.project) + "</span>" : "") +
         '</span><span class="co-country">' + esc(c.country || "") + "</span></div>";
       var mainHtml = '<div class="co-main">' +
@@ -497,21 +497,21 @@
       grid: { left: 190, right: 110, top: 20, bottom: 34 },
       tooltip: {
         trigger: "item",
-        backgroundColor: "#182030", borderColor: "#232d3d",
-        textStyle: { color: "#d6dde6", fontSize: 12 },
+        backgroundColor: "#fdfaf3", borderColor: "#ddd5c4",
+        textStyle: { color: "#2e2a22", fontSize: 12 },
         formatter: function (p) {
           var it = cf.items[p.dataIndex];
           return "<b>" + esc(it.name) + "</b><br/>" + esc(labelFn(it)) +
             (it.note ? "<br/><span style='color:#8b98a9'>" + esc(it.note) + "</span>" : "") +
             (it.raw ? "<br/><span style='color:#8b98a9'>原文：" + esc(it.raw) + "</span>" : "") +
-            (it.est ? "<br/><span style='color:#e8b339'>估算/折算值</span>" : "");
+            (it.est ? "<br/><span style='color:#b8912f'>估算/折算值</span>" : "");
         }
       },
-      xAxis: { type: "value", name: cf.currency || "US$/t", splitLine: { lineStyle: { color: "#1b2431" } } },
+      xAxis: { type: "value", name: cf.currency || "US$/t", splitLine: { lineStyle: { color: "#e7e0cf" } } },
       yAxis: {
         type: "category",
         data: cf.items.map(function (it) { return it.name; }),
-        axisLine: { lineStyle: { color: "#232d3d" } },
+        axisLine: { lineStyle: { color: "#ddd5c4" } },
         axisLabel: { fontSize: 12 }
       },
       series: [{
@@ -519,11 +519,11 @@
         data: cf.items.map(function (it, i) {
           return {
             value: it[valueKey],
-            itemStyle: { color: it.est ? "#a8842a" : PALETTE[i % PALETTE.length] }
+            itemStyle: { color: it.est ? "#c9a52e" : PALETTE[i % PALETTE.length] }
           };
         }),
         label: {
-          show: true, position: "right", color: "#d6dde6",
+          show: true, position: "right", color: "#2e2a22",
           fontFamily: "Consolas, monospace", fontSize: 12,
           formatter: function (p) { return labelFn(cf.items[p.dataIndex]); }
         }
@@ -594,9 +594,9 @@
           if (!div.isConnected) return;
           var inst = echarts.init(div, null, { renderer: "svg" });
           inst.setOption(Object.assign(darkChartBase(), {
-          legend: { top: 4, textStyle: { color: "#8b98a9", fontSize: 11 } },
+          legend: { top: 4, textStyle: { color: "#6d6248", fontSize: 11 } },
           xAxis: { type: "category", data: seriesDefs[0].points.map(function (p) { return p.q; }), axisLabel: { rotate: 45 } },
-          yAxis: { type: "value", name: currency, splitLine: { lineStyle: { color: "#1b2431" } } },
+          yAxis: { type: "value", name: currency, splitLine: { lineStyle: { color: "#e7e0cf" } } },
           series: seriesDefs.map(function (sd, i) {
             return {
               name: sd.name, type: "line", smooth: true, symbol: "circle", symbolSize: 5,
@@ -803,7 +803,7 @@
       var g = rv.guide;
       html += '<div class="co-line"><b>2026 指引进度</b>（' + rv.n_guide + " 家有数值指引）：" +
         '<span style="color:#3fb97c">超出 ' + g["超出"] + "</span> · " +
-        '<span style="color:#e8b339">符合 ' + g["符合"] + "</span> · " +
+        '<span style="color:#b8912f">符合 ' + g["符合"] + "</span> · " +
         '<span style="color:#e05d5d">不及 ' + g["不及"] + "</span>（详见下方指引表）</div>";
     }
     // 品种级产量事件（事故/减产/复产，来自 news affects company="*"）
