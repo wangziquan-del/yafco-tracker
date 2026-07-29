@@ -1,5 +1,21 @@
 [
   {
+    "date": "2026-07-29",
+    "commodity": "镍",
+    "category": "公司",
+    "impact": "mid",
+    "title": "NIC Q2：RKEF 镍 27,864 吨（-8%），ENC 7/21 产首批 MHP、8 月中首批镍阴极",
+    "summary": "Nickel Industries Q2'26（官方季报）：RKEF 镍金属 27,864 吨（环比 -8%，HNI 6 月底一条线大修 4 个月约 50% 产能运行）；NPI 品位 11.3%，合同价 US$14,522/t（+10%），现金成本 US$12,595/t（+20%）。HNC MHP 产量未披露（销量 17,824 吨镍）。ENC HPAL 7/21 产出首批 MHP，首批镍阴极预计 8 月中旬；另收购 CNE 36%/TMI 17.5% 两个 HPAL 扩建，预计 2027 年中投料。",
+    "source": "Nickel Industries Q2 2026 季报（ASX）",
+    "url": "https://nickelindustries.com/",
+    "affects": [
+      {
+        "company": "Nickel Industries",
+        "note": "Q2 RKEF -8%（HNI 大修 4 个月）；ENC 7/21 首批 MHP、8 月中首批镍阴极；扩建 CNE/TMI 2027 年中投料"
+      }
+    ]
+  },
+  {
     "date": "2026-07-28",
     "commodity": "铝",
     "category": "政策",
@@ -22,6 +38,38 @@
       {
         "company": "兴业银锡",
         "note": "银漫事故采区停产约1个月（选厂正常），26Q3矿产锡预计减数百吨"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-28",
+    "commodity": "锂",
+    "category": "公司",
+    "impact": "mid",
+    "title": "Liontown FY26Q4 精矿 103,111 dmt，FY26 全年达标，FY27 指引 390-440kdmt",
+    "summary": "Liontown FY26 Q4（日历 2026Q2，官方 7/28）：Kathleen Valley 锂辉石精矿产量 103,111 dmt、销量 108,489 dmt；FY26 全年 391,992 dmt 达标；Q4 回收率约 63%，地下开拓 3,316 米创纪录。FY27 产量指引 390-440 kdmt SC6。",
+    "source": "Liontown FY26 Q4 季报（ASX）",
+    "url": "https://www.ltresources.com.au/",
+    "affects": [
+      {
+        "company": "Liontown",
+        "note": "FY26Q4 精矿 103.1kdmt、FY26 达标；FY27 指引 390-440kdmt"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-27",
+    "commodity": "镍",
+    "category": "公司",
+    "impact": "mid",
+    "title": "Nornickel Q2 镍 43,282 吨（环比+3.7%），H1 85,028 吨，指引维持",
+    "summary": "Nornickel Q2'26（官方 7/27）：镍 43,282 吨（Q1 41,746），H1 85,028 吨；铜总量 104,394 吨（本部 86,607+外贝加尔 17,787）。FY2026 指引维持：镍 193-203kt、铜本部 336-356kt、外贝加尔 69-73kt。",
+    "source": "Nornickel 官方 Q2 2026 生产报告",
+    "url": "https://www.nornickel.com/",
+    "affects": [
+      {
+        "company": "Nornickel",
+        "note": "Q2 镍 43,282 吨、铜 104.4kt，FY26 指引维持"
       }
     ]
   },

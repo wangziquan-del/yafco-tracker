@@ -1,0 +1,16 @@
+{
+  "company": "Glencore",
+  "published": false,
+  "data": {
+    "zinc": { "2026Q1": null, "2026Q2": null, "H1": null },
+    "copper": { "2026Q1": null, "2026Q2": null, "H1": null },
+    "nickel": { "2026Q1": null, "2026Q2": null, "H1": null }
+  },
+  "guidance": null,
+  "notes": "截至抓取时点（2026-07-29 09:18 北京时间 = 02:18 英国夏令时），H1 2026 生产报告尚未发布。官方日程：报告定于 2026-07-29 英国时间 07:00（北京时间 14:00）经伦敦证交所 RNS 发布，财报（Half-Year Results）定于 2026-08-05。已检索 glencore.com、Investegate RNS、新闻源，仅有 2026-07-01 的发布日程公告，无报告正文。建议北京时间今日 15:00 后重新抓取。参考：Q1 2026 报告（2026-04-30 发布）中铜产量 199.6kt（同比+19%），当时 FY2026 指引维持 2025 年 12 月资本市场日版本不变（铜 810-870kt，此前已下调）；本 JSON 未将 Q1 数据填入 data 字段，待 H1 报告发布后统一按报告口径录入。锌口径预期为 zinc in concentrate（含 Antamina 权益），镍口径预期为 INO 综合镍（Integrated Nickel Operations），均以 H1 报告实际披露为准。",
+  "sources": [
+    "https://www.investegate.co.uk/announcement/rns/glencore--glen/notice-of-2026-half-year-results/9646513",
+    "https://kalkine.co.uk/news/announcements/glencore-sets-29-july-production-report-and-5-august-half-year-results-dates-for-2026",
+    "https://www.investegate.co.uk/announcement/rns/glencore--glen/first-quarter-2026-production-report/9545193"
+  ]
+}
