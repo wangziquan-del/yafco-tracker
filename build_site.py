@@ -863,15 +863,24 @@ def extract_zinc(path):
             })
         return companies
 
-    # --- 锌矿企业·季度产量：行2-22 公司，行23 总计 ---
+    def find_total_row(ws, scan_cols=(1, 2)):
+        """动态定位「总计」行（A 列或 B 列），公司行随之增减。"""
+        for r in range(2, ws.max_row + 1):
+            for c in scan_cols:
+                if txt(ws.cell(row=r, column=c).value) == "总计":
+                    return r
+        raise ValueError(f"sheet {ws.title} 未找到总计行")
+
+    # --- 锌矿企业·季度产量：公司=行2 至总计行-1（2026-07-29 起动态定位，公司行可增删） ---
     ws = wb["锌矿企业·季度产量"]
+    mine_total_r = find_total_row(ws)
     mine_cols = {}
     for col in range(4, 24):  # D..W
         h = txt(ws.cell(row=1, column=col).value)
         if h in pmap:
             mine_cols[col] = pmap[h]
     mine_companies = read_rows(
-        ws, range(2, 23), col_name=1, col_country=2, col_project=3, col_reason=24,
+        ws, range(2, mine_total_r), col_name=1, col_country=2, col_project=3, col_reason=24,
         data_cols=mine_cols,
         yoy_cols={"2025": 19, "2026Q1": 21, "2026Q2": 23},
         col_guide=25, col_cost=26,
@@ -883,28 +892,29 @@ def extract_zinc(path):
     # --- 缺季拟合（机制 1）：锌矿/锌锭两表；总计行为 Excel 原值（实际披露口径），
     #     拟合仅填公司空缺季，不改总计行 ---
     n_fit = fit_missing_quarters(mine_companies)
-    # 总计行（行23，B 列=总计）
+    # 总计行（动态定位，B 列=总计）
     total_row = {"data": {}, "yoy": {}}
     provided = {}
     for p, col in (("2025", 19), ("2026Q1", 21), ("2026Q2", 23)):
-        v = num(ws.cell(row=23, column=col).value)
+        v = num(ws.cell(row=mine_total_r, column=col).value)
         if v is not None:
             provided[p] = v
     for col, p in mine_cols.items():
-        v = num(ws.cell(row=23, column=col).value)
+        v = num(ws.cell(row=mine_total_r, column=col).value)
         if v is not None:
             total_row["data"][p] = v
     total_row["yoy"] = compute_yoy(total_row["data"], provided)
 
-    # --- 锌锭冶炼企业·季度产量：行2-13 公司，行14 总计 ---
+    # --- 锌锭冶炼企业·季度产量：公司=行2 至总计行-1（动态定位） ---
     ws2 = wb["锌锭冶炼企业·季度产量"]
+    ref_total_r = find_total_row(ws2, scan_cols=(1, 2))
     ref_cols = {}
     for col in range(3, 23):  # C..V
         h = txt(ws2.cell(row=1, column=col).value)
         if h in pmap:
             ref_cols[col] = pmap[h]
     ref_companies = read_rows(
-        ws2, range(2, 14), col_name=2, col_country=1, col_project=None, col_reason=24,
+        ws2, range(2, ref_total_r), col_name=2, col_country=1, col_project=None, col_reason=24,
         data_cols=ref_cols,
         yoy_cols={"2024": 13, "2025": 19, "2026Q1": 21, "2026Q2": 23},
     )
@@ -912,11 +922,11 @@ def extract_zinc(path):
     ref_total = {"data": {}, "yoy": {}}
     provided = {}
     for p, col in (("2024", 13), ("2025", 19), ("2026Q1", 21), ("2026Q2", 23)):
-        v = num(ws2.cell(row=14, column=col).value)
+        v = num(ws2.cell(row=ref_total_r, column=col).value)
         if v is not None:
             provided[p] = v
     for col, p in ref_cols.items():
-        v = num(ws2.cell(row=14, column=col).value)
+        v = num(ws2.cell(row=ref_total_r, column=col).value)
         if v is not None:
             ref_total["data"][p] = v
     ref_total["yoy"] = compute_yoy(ref_total["data"], provided)
@@ -1824,7 +1834,12 @@ def main():
     checks.append(("锡 Sheet1 兴业银锡 2023 = 7769", xyst["data"].get("2023"), 7769))
     dugald = next((c for c in zinc_sec_mine["companies"] if c["project"] == "Dugald River"), None)
     checks.append(("锌 Dugald River 26Q2 = 4.61", dugald["data"].get("2026Q2") if dugald else None, 4.61))
-    checks.append(("锌矿总计行 26Q1 = 108.3", zinc_sec_mine["total"]["data"].get("2026Q1"), 108.3))
+    # 2026-07-29 起锌矿表新增16家公司、总计行改为全公司行求和，26Q1 总计口径随之变化
+    checks.append(("锌矿总计行 26Q1 = 142.2653", zinc_sec_mine["total"]["data"].get("2026Q1"), 142.2653))
+    zijin = next((c for c in zinc_sec_mine["companies"] if c["name"] == "紫金矿业"), None)
+    checks.append(("锌 紫金矿业 25总计 = 35.7453", zijin["data"].get("2025") if zijin else None, 35.7453))
+    fres = next((c for c in zinc_sec_mine["companies"] if c["name"] == "Fresnillo"), None)
+    checks.append(("锌 Fresnillo 26Q2 = 2.7672", fres["data"].get("2026Q2") if fres else None, 2.7672))
     # 「季度补充」sheet 接入核对
     tin_ref = {c["name"]: c for c in tin_sec_ref["companies"]}
     tin_mine = {c["name"]: c for c in tin_sec_mine["companies"]}
