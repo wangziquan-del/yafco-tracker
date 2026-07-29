@@ -314,3 +314,15 @@ a.news-title:hover { color: var(--accent); text-decoration: underline; }
 .tf-reset { padding: 3px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); color: var(--muted); cursor: pointer; font-size: 12px; }
 .tf-reset:hover { color: var(--accent-dim); border-color: var(--accent-dim); }
 .tf-hint { color: var(--faint); }
+
+/* 产量表格：一级公司分组行 + 子行缩进 + 表头排序 */
+.grp-row { cursor: pointer; }
+.grp-row td { background: var(--panel2); font-weight: 600; }
+.grp-row:hover td { background: rgba(184,145,47,.12); }
+.freeze .data-table .grp-row td:first-child { background: var(--panel2); }
+.grp-toggle { display: inline-block; width: 14px; color: var(--accent-dim); }
+.grp-n { color: var(--faint); font-size: 11px; font-weight: 400; margin-left: 4px; }
+.data-table td.grp-sum { font-weight: 600; color: var(--accent-dim); }
+.data-table td.child-cell { padding-left: 22px; font-weight: 400; }
+.data-table th.sortable { cursor: pointer; user-select: none; }
+.data-table th.sortable:hover { color: var(--accent-dim); }

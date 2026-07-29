@@ -183,7 +183,7 @@
     container.appendChild(section);
 
     var chartInst = null;
-    var fState = filterState[domId] = filterState[domId] || { per: {}, comp: {} };
+    var fState = filterState[domId] = filterState[domId] || { per: {}, comp: {}, collapsed: {}, sort: null };
 
     function compKey(c) { return c.name + (c.project ? "·" + c.project : ""); }
     function prevPeriod(p) {
@@ -191,6 +191,28 @@
       if (m) return (parseInt(m[1], 10) - 1) + "Q" + m[2];
       if (/^\d{4}$/.test(p)) return String(parseInt(p, 10) - 1);
       return null;
+    }
+    // 按一级公司（c.name）分组：同名多项目 → 父行（小计，可折叠）+ 子行（项目）
+    function buildGroups(comps) {
+      var groups = [], byName = {};
+      comps.forEach(function (c) {
+        var g = byName[c.name];
+        if (!g) { g = byName[c.name] = { name: c.name, items: [] }; groups.push(g); }
+        g.items.push(c);
+      });
+      return groups;
+    }
+    function groupSum(items, p) {
+      var s = 0, seen = false;
+      items.forEach(function (c) { var x = c.data[p]; if (x !== null && x !== undefined) { s += x; seen = true; } });
+      return seen ? s : null;
+    }
+    function cellVal(c, p) { var v = c.data[p]; return (v === null || v === undefined) ? null : v; }
+    function cmpVal(a, b) {  // null 一律排最后
+      if (a === null && b === null) return 0;
+      if (a === null) return 1;
+      if (b === null) return -1;
+      return a < b ? -1 : a > b ? 1 : 0;
     }
 
     function periods() {
@@ -201,27 +223,63 @@
       var ps = periods().filter(function (p) { return !fState.per[p]; });
       var comps = sec.companies.filter(function (c) { return !fState.comp[compKey(c)]; });
       var compFiltered = comps.length !== sec.companies.length;
-      var html = '<table class="data-table"><thead><tr><th>公司</th><th>国家/地区</th>';
-      ps.forEach(function (p) { html += "<th>" + esc(p) + "</th>"; });
-      html += "<th>最新同比</th></tr></thead><tbody>";
-      comps.forEach(function (c) {
-        var label = esc(c.name) +
-          (c.est ? '<sup style="color:#b8912f" title="含估算/推算：' + esc(c.est_note || "") + '">†</sup>' : "") +
-          (c.project ? ' <span style="color:#5b6879">· ' + esc(c.project) + "</span>" : "");
-        var nameTitle = c.est && c.est_note ? ' title="含估算/推算：' + esc(c.est_note) + '"' : "";
-        html += "<tr><td" + nameTitle + ">" + label + "</td><td>" + esc(c.country || "—") + "</td>";
-        ps.forEach(function (p) {
-          var v = c.data[p];
-          var isEstQ = c.est_q && c.est_q[p];
-          var title = "";
-          if (isEstQ && c.est_q_note && c.est_q_note[p]) title = ' title="' + esc(c.est_q_note[p]) + '"';
-          else if (c.reason && v !== null && v !== undefined) title = ' title="变化原因：' + esc(c.reason) + '"';
-          html += v === null || v === undefined
-            ? '<td class="na">—</td>'
-            : '<td class="' + (isEstQ ? "estq" : "") + '"' + title + ">" + fmtNum(v) + "</td>";
+      var groups = buildGroups(comps);
+      // 列排序：点期间表头按该列值排序（组按小计、组内按子行值；null 排最后）；再点切换升降；点「公司」列恢复默认
+      var sort = fState.sort;
+      if (sort && sort.p) {
+        groups.forEach(function (g) {
+          g.items.sort(function (a, b) { return cmpVal(cellVal(a, sort.p), cellVal(b, sort.p)) * sort.dir; });
+          g._sum = groupSum(g.items, sort.p);
         });
-        var lp = latestPeriodWithData(c.data, ps, []);
-        html += "<td>" + (lp && c.yoy[lp] !== undefined ? fmtPct(c.yoy[lp]) : '<span class="flat">—</span>') + "</td></tr>";
+        groups.sort(function (a, b) { return cmpVal(a._sum, b._sum) * sort.dir; });
+      }
+      var html = '<table class="data-table"><thead><tr><th class="sortable" data-sort="" title="点击恢复默认顺序">公司</th><th>国家/地区</th>';
+      ps.forEach(function (p) {
+        var arrow = sort && sort.p === p ? (sort.dir < 0 ? " ▼" : " ▲") : "";
+        html += '<th class="sortable" data-sort="' + esc(p) + '" title="点击按本列排序">' + esc(p) + arrow + "</th>";
+      });
+      html += "<th>最新同比</th></tr></thead><tbody>";
+      groups.forEach(function (g) {
+        var isGroup = g.items.length > 1;
+        var collapsed = isGroup && fState.collapsed && fState.collapsed[g.name];
+        if (isGroup) {  // 一级公司父行：小计 + 折叠开关
+          html += '<tr class="grp-row" data-grp="' + esc(g.name) + '" title="点击折叠/展开"><td>' +
+            '<span class="grp-toggle">' + (collapsed ? "▸" : "▾") + "</span> <b>" + esc(g.name) + "</b>" +
+            " <span class='grp-n'>" + g.items.length + " 项目</span></td><td></td>";
+          ps.forEach(function (p) {
+            var s = groupSum(g.items, p);
+            html += s === null ? '<td class="na">—</td>' : '<td class="grp-sum">' + fmtNum(s) + "</td>";
+          });
+          var lp = null;
+          for (var i = ps.length - 1; i >= 0; i--) { if (groupSum(g.items, ps[i]) !== null) { lp = ps[i]; break; } }
+          var gy;
+          if (lp) {
+            var gpp = prevPeriod(lp), gsv = groupSum(g.items, lp), gsp = gpp ? groupSum(g.items, gpp) : null;
+            if (gsv !== null && gsp) gy = (gsv - gsp) / gsp;
+          }
+          html += "<td>" + (gy !== undefined ? fmtPct(gy) : '<span class="flat">—</span>') + "</td></tr>";
+        }
+        if (collapsed) return;
+        g.items.forEach(function (c) {
+          var est = c.est ? '<sup style="color:#b8912f" title="含估算/推算：' + esc(c.est_note || "") + '">†</sup>' : "";
+          var label = isGroup && c.project
+            ? esc(c.project) + est
+            : esc(c.name) + est + (c.project ? ' <span style="color:#5b6879">· ' + esc(c.project) + "</span>" : "");
+          var nameTitle = c.est && c.est_note ? ' title="含估算/推算：' + esc(c.est_note) + '"' : "";
+          html += "<tr><td" + (isGroup ? ' class="child-cell"' : "") + nameTitle + ">" + label + "</td><td>" + esc(c.country || "—") + "</td>";
+          ps.forEach(function (p) {
+            var v = c.data[p];
+            var isEstQ = c.est_q && c.est_q[p];
+            var title = "";
+            if (isEstQ && c.est_q_note && c.est_q_note[p]) title = ' title="' + esc(c.est_q_note[p]) + '"';
+            else if (c.reason && v !== null && v !== undefined) title = ' title="变化原因：' + esc(c.reason) + '"';
+            html += v === null || v === undefined
+              ? '<td class="na">—</td>'
+              : '<td class="' + (isEstQ ? "estq" : "") + '"' + title + ">" + fmtNum(v) + "</td>";
+          });
+          var lp2 = latestPeriodWithData(c.data, ps, []);
+          html += "<td>" + (lp2 && c.yoy[lp2] !== undefined ? fmtPct(c.yoy[lp2]) : '<span class="flat">—</span>') + "</td></tr>";
+        });
       });
       // 总计行：默认用同口径预计算合计；公司筛选后按可见公司重算（简单同比）
       html += '<tr class="total-row"><td>合计' +
@@ -230,12 +288,9 @@
         var v, y;
         if (!compFiltered) { v = sec.total.data[p]; y = sec.total.yoy[p]; }
         else {
-          var s = 0, seen = false;
-          comps.forEach(function (c) { var x = c.data[p]; if (x !== null && x !== undefined) { s += x; seen = true; } });
-          v = seen ? s : null;
-          var pp = prevPeriod(p), sp = 0, seenp = false;
-          if (pp) comps.forEach(function (c) { var x = c.data[pp]; if (x !== null && x !== undefined) { sp += x; seenp = true; } });
-          y = (v !== null && seenp && sp) ? (v - sp) / sp : undefined;
+          v = groupSum(comps, p);
+          var pp = prevPeriod(p), sp = pp ? groupSum(comps, pp) : null;
+          y = (v !== null && sp) ? (v - sp) / sp : undefined;
         }
         html += v === null || v === undefined
           ? '<td class="na">—</td>'
@@ -243,6 +298,23 @@
       });
       html += "<td></td></tr></tbody></table>";
       wrap.innerHTML = html;
+      // 绑定：父行折叠/展开 + 表头排序
+      wrap.querySelectorAll(".grp-row").forEach(function (tr) {
+        tr.addEventListener("click", function () {
+          var n = tr.getAttribute("data-grp");
+          fState.collapsed[n] = !fState.collapsed[n];
+          renderTable();
+        });
+      });
+      wrap.querySelectorAll("th.sortable").forEach(function (th) {
+        th.addEventListener("click", function () {
+          var sp = th.getAttribute("data-sort");
+          if (!sp) fState.sort = null;
+          else if (fState.sort && fState.sort.p === sp) fState.sort.dir = -fState.sort.dir;
+          else fState.sort = { p: sp, dir: -1 };  // 首次点击默认降序（大的在前）
+          renderTable();
+        });
+      });
     }
 
     // 表格筛选工具条：期间（季度视图按年分组，可整年折叠）+ 公司两个多选下拉；
@@ -257,6 +329,7 @@
       } else {
         ps.forEach(function (p) { groups.push({ label: p, items: [p] }); });
       }
+      var compGroups = buildGroups(sec.companies);  // 公司筛选也按一级公司分组
       filterBar.innerHTML =
         '<details class="tf"><summary>期间筛选<b class="tf-n"></b></summary><div class="tf-body">' +
         groups.map(function (g, gi) {
@@ -270,8 +343,17 @@
         }).join("") +
         '</div></details>' +
         '<details class="tf"><summary>公司筛选<b class="tf-n"></b></summary><div class="tf-body">' +
-        sec.companies.map(function (c) {
-          return '<label class="tf-item"><input type="checkbox" data-comp="' + esc(compKey(c)) + '"> ' + esc(compKey(c)) + "</label>";
+        compGroups.map(function (g, gi) {
+          if (g.items.length === 1) {
+            return '<label class="tf-item"><input type="checkbox" data-comp="' + esc(compKey(g.items[0])) + '"> ' +
+              esc(compKey(g.items[0])) + "</label>";
+          }
+          return '<div class="tf-group"><label class="tf-master"><input type="checkbox" data-cmaster="' + gi + '"> ' +
+            esc(g.name) + "</label>" +
+            g.items.map(function (c) {
+              return '<label class="tf-item"><input type="checkbox" data-comp="' + esc(compKey(c)) + '"> ' +
+                esc(c.project || c.name) + "</label>";
+            }).join("") + "</div>";
         }).join("") +
         '</div></details>' +
         '<button class="tf-reset" type="button">重置筛选</button><span class="tf-hint"></span>';
@@ -286,6 +368,12 @@
         filterBar.querySelectorAll("[data-master]").forEach(function (box) {
           var g = groups[+box.getAttribute("data-master")];
           var off = g.items.filter(function (p) { return fState.per[p]; }).length;
+          box.checked = off === 0;
+          box.indeterminate = off > 0 && off < g.items.length;
+        });
+        filterBar.querySelectorAll("[data-cmaster]").forEach(function (box) {
+          var g = compGroups[+box.getAttribute("data-cmaster")];
+          var off = g.items.filter(function (c) { return fState.comp[compKey(c)]; }).length;
           box.checked = off === 0;
           box.indeterminate = off > 0 && off < g.items.length;
         });
@@ -310,6 +398,16 @@
         box.addEventListener("change", function () {
           var g = groups[+box.getAttribute("data-master")];
           g.items.forEach(function (p) { if (box.checked) delete fState.per[p]; else fState.per[p] = true; });
+          refresh(); renderTable();
+        });
+      });
+      filterBar.querySelectorAll("[data-cmaster]").forEach(function (box) {
+        box.addEventListener("change", function () {
+          var g = compGroups[+box.getAttribute("data-cmaster")];
+          g.items.forEach(function (c) {
+            var k = compKey(c);
+            if (box.checked) delete fState.comp[k]; else fState.comp[k] = true;
+          });
           refresh(); renderTable();
         });
       });
