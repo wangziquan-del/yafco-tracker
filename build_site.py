@@ -94,7 +94,9 @@ TIN_FY2026_GUIDE = {
 # Metro Q1 雨季、Nornickel Q4 冲量、South32（Cerro Matoso 已出售）
 # 支持「公司·项目」精确写法：BOLIDEN·Garpenberg=2026 地震事件年（Q2 停产，H2 低产能爬坡，×2 年化失真）
 # BOLIDEN·Tara=2026 指引下调年（Q2 磨矿指引 1.8→1.6Mt，开拓滞后意味着 H2 偏弱，×2 年化高估）
-NO_ANNUALIZE_GUIDE = {"Metro Mining", "Nornickel", "South32", "BOLIDEN·Garpenberg", "BOLIDEN·Tara"}
+# 住友金属矿山=财年止 3 月（日历 Q1 年化×4 与 FY 错位）；Sigma/紫金锂/Ozernaya=爬坡期（×2/×4 失真）
+NO_ANNUALIZE_GUIDE = {"Metro Mining", "Nornickel", "South32", "BOLIDEN·Garpenberg", "BOLIDEN·Tara",
+                      "住友金属矿山", "Sigma Lithium", "紫金矿业·3Q+拉果错+湘源(LCE)", "Polymetal·Ozernaya Minin"}
 
 # ---------------------------------------------------------------------------
 # 锡 · 成本补充常量（官方财报 / MD&A / 券商模型，2026-07 核实）
@@ -1262,7 +1264,7 @@ def parse_guide_value(text, unit_kind):
         v = to_f(m.group(1))
         return conv(v, m.group(2)), conv(v, m.group(2))
     # 4) 「：」后的数字（'FY27：72'、'2026：260'、'2026：铝商品约319'）
-    m = re.search(r"[：:]\s*约？\s*([\d,]+(?:\.\d+)?)", t)
+    m = re.search(r"[：:]\s*约?\s*([\d,]+(?:\.\d+)?)", t)
     if m:
         v = to_f(m.group(1))
         return v, v
@@ -1367,6 +1369,7 @@ FY2027_OUTLOOK = {
             "Ivanhoe": "Kipushi 稳态运行首个完整年（计划）",
             "BOLIDEN·Garpenberg": "2027 磨矿指引 2.3Mt（3/14 地震后恢复，2026=1.5Mt）≈5-5.5 万金属吨（官方指引折算）",
             "BOLIDEN·Tara": "2026 磨矿指引下调至 1.6Mt（开拓滞后），2027 看开拓赶上后的恢复性爬产（无官方指引，平台推断）",
+            "Polymetal·Ozernaya Minin": "新投产矿山爬坡期，2027 继续向设计产能爬升（计划）",
         },
         "total": "2027 矿端小幅恢复：Dugald River/Kipushi 稳态 vs Red Dog 品位下滑+老矿衰竭；TC 拐点取决于新增矿山投放节奏，锭端过剩压力仍在。",
     },
@@ -1404,7 +1407,7 @@ FY2027_OUTLOOK = {
             "IGO": "Greenbushes CGP3 满产首个完整年，FY27 产量上台阶（计划）",
             "Mineral Resources": "Wodgina/Mt Marion 满产维持，Mt Marion 品位约束延续",
             "Liontown": "FY27 底 2.8Mtpa 稳态目标，2027 为地下爬坡关键年（计划）",
-            "Sigma Lithium": "二期/三期扩产视融资推进（计划）",
+            "Sigma Lithium": "2025Q4 停产→2026 重启爬坡（26Q1 未披露），2027 恢复至约 24 万吨精矿年化（计划，视二期融资）",
             "Core Lithium": "2026/9 季度首批精矿→2027 复产贡献；BP33 2027 年中首矿（计划）",
             "SQM": "销量延续增长（2026 指引 +15% 以上），智利+海外扩张继续",
             "Rio Tinto": "Rincon 扩建爬坡+Sal de Vida 推进（公司管线）",
