@@ -92,7 +92,8 @@ TIN_FY2026_GUIDE = {
 
 # 指引年化排除名单（季节性或状态特殊，不做机械年化）：
 # Metro Q1 雨季、Nornickel Q4 冲量、South32（Cerro Matoso 已出售）
-NO_ANNUALIZE_GUIDE = {"Metro Mining", "Nornickel", "South32"}
+# 支持「公司·项目」精确写法：BOLIDEN·Garpenberg=2026 地震事件年（Q2 停产，H2 低产能爬坡，×2 年化失真）
+NO_ANNUALIZE_GUIDE = {"Metro Mining", "Nornickel", "South32", "BOLIDEN·Garpenberg"}
 
 # ---------------------------------------------------------------------------
 # 锡 · 成本补充常量（官方财报 / MD&A / 券商模型，2026-07 核实）
@@ -1295,8 +1296,9 @@ def build_guide_progress(entry):
             completed_periods = [p for p in ("2026Q1", "2026Q2") if c["data"].get(p) is not None]
             completed = sum(c["data"][p] for p in completed_periods) if completed_periods else None
             annualized = pct = status = note = None
-            if c["name"] in NO_ANNUALIZE_GUIDE:
-                status = "季节性，不年化"
+            full_key = c["name"] + "·" + (c.get("project") or "")
+            if c["name"] in NO_ANNUALIZE_GUIDE or full_key in NO_ANNUALIZE_GUIDE:
+                status = "季节性，不年化" if c["name"] in NO_ANNUALIZE_GUIDE else "事件年，不年化"
             elif completed is not None and mid:
                 factor = 2 if "2026Q2" in completed_periods else 4
                 annualized = completed * factor
@@ -1326,8 +1328,8 @@ def build_guide_progress(entry):
     data_by_name = {c["name"]: c for sec in entry["sections"] for c in sec["companies"]}
     for r in rows:
         base = r["name"].split("·")[0]
-        hit = comp_map.get(base) or next(
-            (v for k, v in comp_map.items() if base.startswith(k) or k in base), None)
+        hit = comp_map.get(r["name"]) or comp_map.get(base) or next(
+            (v for k, v in comp_map.items() if base.startswith(k) or k in base or r["name"].startswith(k)), None)
         if hit:
             r["fy2027"] = hit
             continue
@@ -1362,6 +1364,7 @@ FY2027_OUTLOOK = {
             "South32": "FY27 锌当量指引 20.47 万吨，与 FY26 持平（官方）",
             "Teck": "Red Dog 品位按计划继续下滑，Antamina 铜锌比波动（计划）",
             "Ivanhoe": "Kipushi 稳态运行首个完整年（计划）",
+            "BOLIDEN·Garpenberg": "2027 磨矿指引 2.3Mt（3/14 地震后恢复，2026=1.5Mt）≈5-5.5 万金属吨（官方指引折算）",
         },
         "total": "2027 矿端小幅恢复：Dugald River/Kipushi 稳态 vs Red Dog 品位下滑+老矿衰竭；TC 拐点取决于新增矿山投放节奏，锭端过剩压力仍在。",
     },
@@ -1653,12 +1656,17 @@ def attach_event_flags(entry, news):
             if cname == "*":
                 entry["commodity_events"].append(flag)
                 continue
+            proj = aff.get("project")
             for sec in entry["sections"]:
                 for c in sec["companies"]:
-                    if c["name"] == cname or cname in c["name"]:
+                    name_hit = (c["name"] == cname or cname in c["name"])
+                    proj_hit = (proj is None) or ((c.get("project") or "") == proj)
+                    if name_hit and proj_hit:
                         c["event_flag"] = flag
             for r in entry.get("guide_progress", {}).get("rows", []):
-                if r["name"].split("·")[0] == cname or r["name"].startswith(cname):
+                name_hit = r["name"].split("·")[0] == cname or r["name"].startswith(cname)
+                proj_hit = (proj is None) or (proj in r["name"])
+                if name_hit and proj_hit:
                     tag = f"⚠ {flag['date']} {note}"
                     if tag not in (r["note"] or ""):
                         r["note"] = ((r["note"] + "；" + tag) if r["note"] else tag)
