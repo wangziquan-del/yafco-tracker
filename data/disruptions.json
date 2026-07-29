@@ -109,6 +109,34 @@
     },
     {
       "commodity": "锌",
+      "date": "2026-07-23",
+      "ongoing": true,
+      "company": "Teck Red Dog / Antamina",
+      "country": "美国/秘鲁",
+      "type": "品位下滑·结构性",
+      "dir": "down",
+      "capacity": "Red Dog 2026 指引 37.5-41.5 万吨",
+      "impact": "Red Dog 26Q2 锌精矿 -18%（品位计划内下滑）；Antamina 锌 -62%（入选铜锌比降至 33%）",
+      "recovery": "非事故、不可逆：Red Dog 品位 2027 按计划继续下滑，Antamina 铜锌比随矿床推进波动",
+      "source": "Teck Q2 2026 新闻稿",
+      "url": "https://www.teck.com/media/Teck-Q2-2026-Unaudited-Results.pdf"
+    },
+    {
+      "commodity": "锌",
+      "date": "2026-07-29",
+      "ongoing": true,
+      "company": "Glencore Lady Loretta / Kidd",
+      "country": "澳大利亚/加拿大",
+      "type": "矿山衰竭+资产出售",
+      "dir": "down",
+      "capacity": "—",
+      "impact": "H1 锌 -21%：Lady Loretta 寿命终结 -51kt、Antamina 品位降 -39.2kt、Kidd 6/1 出售",
+      "recovery": "Lady Loretta/Kidd 为永久性退出，不恢复；Mount Isa 资源渐枯竭延续，2027 集团锌量难回 2025 水平",
+      "source": "Glencore H1 2026 Production Report",
+      "url": "https://www.glencore.com/investors/reports"
+    },
+    {
+      "commodity": "锌",
       "date": "2025-04/05",
       "ongoing": true,
       "company": "Young Poong Seokpo（停产后复产）",
@@ -346,6 +374,19 @@
     },
     {
       "commodity": "镍",
+      "date": "持续放量",
+      "ongoing": true,
+      "company": "华友钴业（印尼 HPAL）",
+      "country": "印尼",
+      "type": "爬坡增产",
+      "dir": "up",
+      "capacity": "2025 中间品镍约 28.7 万吨（券商口径）",
+      "impact": "华飞检修恢复+新线爬坡，印尼 HPAL 继续放量",
+      "recovery": "2027 新线继续贡献，中间品过剩压力的主要来源之一",
+      "source": "平台整理（公司披露/券商测算）"
+    },
+    {
+      "commodity": "镍",
       "date": "2026Q2",
       "company": "Vale Sudbury",
       "country": "加拿大",
@@ -412,6 +453,19 @@
     },
     {
       "commodity": "铜",
+      "date": "2026-07-29",
+      "company": "Glencore（非洲铜/Antamina）",
+      "country": "刚果(金)/秘鲁",
+      "type": "恢复性增产",
+      "dir": "up",
+      "capacity": "FY26 铜指引 810-870kt",
+      "impact": "H1 铜 39.7 万吨（+15%）：非洲铜 +55kt、Antamina +27.7kt",
+      "recovery": "指引维持且未扣 Kidd 出售约 11kt，隐含同口径上调",
+      "source": "Glencore H1 2026 Production Report",
+      "url": "https://www.glencore.com/investors/reports"
+    },
+    {
+      "commodity": "铜",
       "date": "2026-07",
       "company": "BHP（Escondida 等）",
       "country": "智利/澳大利亚",
@@ -434,6 +488,19 @@
       "recovery": "已复产；2027 首个完整年；新环评流程或涉采矿证延续/扩产（传言）",
       "source": "证券日报/每经",
       "url": "https://finance.sina.com.cn/roll/2026-07-09/doc-inihczph8267646.shtml"
+    },
+    {
+      "commodity": "锂",
+      "date": "2026-07-28",
+      "company": "Liontown Kathleen Valley",
+      "country": "澳大利亚",
+      "type": "爬产达标",
+      "dir": "up",
+      "capacity": "FY26 391,992 dmt 达标",
+      "impact": "FY26Q4 精矿 103,111 dmt，回收率约 63%，地下开拓创纪录",
+      "recovery": "FY27 指引 390-440 kdmt SC6，2027 底 2.8Mtpa 稳态目标爬坡中",
+      "source": "Liontown FY26 Q4 季报（ASX）",
+      "url": "https://www.ltresources.com.au/"
     },
     {
       "commodity": "锂",
