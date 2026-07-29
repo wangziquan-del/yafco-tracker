@@ -93,7 +93,8 @@ TIN_FY2026_GUIDE = {
 # 指引年化排除名单（季节性或状态特殊，不做机械年化）：
 # Metro Q1 雨季、Nornickel Q4 冲量、South32（Cerro Matoso 已出售）
 # 支持「公司·项目」精确写法：BOLIDEN·Garpenberg=2026 地震事件年（Q2 停产，H2 低产能爬坡，×2 年化失真）
-NO_ANNUALIZE_GUIDE = {"Metro Mining", "Nornickel", "South32", "BOLIDEN·Garpenberg"}
+# BOLIDEN·Tara=2026 指引下调年（Q2 磨矿指引 1.8→1.6Mt，开拓滞后意味着 H2 偏弱，×2 年化高估）
+NO_ANNUALIZE_GUIDE = {"Metro Mining", "Nornickel", "South32", "BOLIDEN·Garpenberg", "BOLIDEN·Tara"}
 
 # ---------------------------------------------------------------------------
 # 锡 · 成本补充常量（官方财报 / MD&A / 券商模型，2026-07 核实）
@@ -1365,6 +1366,7 @@ FY2027_OUTLOOK = {
             "Teck": "Red Dog 品位按计划继续下滑，Antamina 铜锌比波动（计划）",
             "Ivanhoe": "Kipushi 稳态运行首个完整年（计划）",
             "BOLIDEN·Garpenberg": "2027 磨矿指引 2.3Mt（3/14 地震后恢复，2026=1.5Mt）≈5-5.5 万金属吨（官方指引折算）",
+            "BOLIDEN·Tara": "2026 磨矿指引下调至 1.6Mt（开拓滞后），2027 看开拓赶上后的恢复性爬产（无官方指引，平台推断）",
         },
         "total": "2027 矿端小幅恢复：Dugald River/Kipushi 稳态 vs Red Dog 品位下滑+老矿衰竭；TC 拐点取决于新增矿山投放节奏，锭端过剩压力仍在。",
     },

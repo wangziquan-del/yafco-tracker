@@ -164,7 +164,7 @@
     "commodity": "锌",
     "category": "供应",
     "impact": "high",
-    "title": "Boliden Garpenberg 地震停产：2026 磨矿指引 3.7→1.5Mt（-60%），锌银供应收紧",
+    "title": "Boliden Q2 不及预期：Garpenberg 地震减产六成 + Tara 指引下调，锌供应收紧",
     "summary": "Garpenberg 3/14 异常地震+岩爆停产至 4 月底，Q2 磨矿仅约 0.1Mt（平台数据 26Q2 锌产量仅 0.2 万吨）；2026 磨矿指引自 3.7Mt 下调至 1.5Mt（-60%），锌品位指引 2.9%→2.7%，折金属量约 3.2-3.5 万吨（2025 年实际 10.18 万吨）；2027 磨矿指引 2.3Mt 进入恢复。受损提升机已修复、未受影响区域复产，目前约 30% 产能，Q2 利润因此少约 4 亿克朗。",
     "source": "Boliden Q2 2026 季报/mining.com",
     "url": "https://www.mining.com/web/bolidens-first-quarter-earnings-beat-estimates-despite-challenges-at-garpenberg-mine/",
@@ -173,6 +173,11 @@
         "company": "BOLIDEN",
         "project": "Garpenberg",
         "note": "3/14地震停产至4月底，2026磨矿指引3.7→1.5Mt(-60%)，26Q2仅0.2万吨；2027磨矿指引2.3Mt恢复"
+      },
+      {
+        "company": "BOLIDEN",
+        "project": "Tara",
+        "note": "Q2 将 2026 磨矿指引 1.8→1.6Mt（开拓进度不及预期，H2 偏弱）"
       }
     ]
   },
