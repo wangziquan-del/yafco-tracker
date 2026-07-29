@@ -109,6 +109,19 @@
     },
     {
       "commodity": "锌",
+      "date": "2025-04/05",
+      "ongoing": true,
+      "company": "Young Poong Seokpo（停产后复产）",
+      "country": "韩国",
+      "type": "复产",
+      "dir": "up",
+      "capacity": "约 40 万吨/年",
+      "impact": "2025/2 法院裁定停产 58 天结束，+4.6 万吨恢复",
+      "recovery": "已在产；注意 2026/7/9 硫酸装置火灾为新事件（见减量行）",
+      "source": "SMM/Alpha Biz"
+    },
+    {
+      "commodity": "锌",
       "date": "2026-03",
       "company": "South32 Cannington",
       "country": "澳大利亚",
@@ -294,6 +307,45 @@
     },
     {
       "commodity": "镍",
+      "date": "2026-04-29",
+      "company": "Nickel Industries ENC HPAL",
+      "country": "印尼",
+      "type": "新增投产",
+      "dir": "up",
+      "capacity": "7.2 万吨镍/年（权益 46% 拟升 55%）",
+      "impact": "26Q2 开始投料、目标 10 月底达产；同期 HNC MHP 超设计产能 44% 运行",
+      "recovery": "2027 首个完整年，中间品放量的主力增量",
+      "source": "Nickel Industries Q1 季报",
+      "url": "https://www.mysteel.net/news/5122037-flash-nickel-industries-q1-2026-nickel-production-down-441-year-on-year"
+    },
+    {
+      "commodity": "镍",
+      "date": "2026-07-23",
+      "company": "Antam / NIC Hengjaya（RKAB 全额获批）",
+      "country": "印尼",
+      "type": "政策·配额获批",
+      "dir": "up",
+      "capacity": "Antam 1,810 万 wmt / Hengjaya 1,900 万 wmt",
+      "impact": "配额收紧中的结构性赢家：两家全额/足额获批，矿石供应有保障",
+      "recovery": "对照 Weda Bay 仅批 12Mwmt（-70%），2026-2027 印尼内部份额向获批矿山集中",
+      "source": "Eramet Q1 季报/Mysteel",
+      "url": "https://www.investegate.co.uk/announcement/gnw/eramet-sa--0mgv/eramet-strong-turnover-momentum-in-q1-2026-d-/9532623"
+    },
+    {
+      "commodity": "镍",
+      "date": "2026-07-21",
+      "company": "Vale Onça Puma",
+      "country": "巴西",
+      "type": "运营改善",
+      "dir": "up",
+      "capacity": "—",
+      "impact": "Q2 镍 +95.8% 创历史最高 Q2，Long Harbour 同创纪录",
+      "recovery": "对冲 Sudbury 大检修，Vale 2026 镍指引 175-200kt 维持",
+      "source": "Vale 2Q26 产量报告",
+      "url": "https://www.vale.com/check-out-the-production-and-sales-in-2q26/-/categories/64874"
+    },
+    {
+      "commodity": "镍",
       "date": "2026Q2",
       "company": "Vale Sudbury",
       "country": "加拿大",
@@ -331,6 +383,32 @@
       "impact": "停产至今，全球平衡表持续缺口来源",
       "recovery": "堆存矿处理已获批，重启时间未定；若重启为 2027 上行期权",
       "source": "公司公告/平台整理"
+    },
+    {
+      "commodity": "铜",
+      "date": "2026 年内",
+      "ongoing": true,
+      "company": "Cobre Panamá 堆存矿获批（First Quantum）",
+      "country": "巴拿马",
+      "type": "复产推进",
+      "dir": "up",
+      "capacity": "约 35 万吨/年（停产前）",
+      "impact": "停产矿山堆存矿处理获批，向重启迈进一步",
+      "recovery": "重启时间未定；若重启为 2027 供应上行期权",
+      "source": "公司公告/平台整理"
+    },
+    {
+      "commodity": "铜",
+      "date": "持续爬产",
+      "ongoing": true,
+      "company": "Teck Quebrada Blanca（QB）",
+      "country": "智利",
+      "type": "爬坡增产",
+      "dir": "up",
+      "capacity": "QB 按 100% 口径（持股 60%）",
+      "impact": "QB 持续爬坡贡献增量",
+      "recovery": "2027 继续爬坡；Anglo-Teck 合并仅剩中国审批，交割后口径切换",
+      "source": "Teck 季报/平台整理"
     },
     {
       "commodity": "铜",
