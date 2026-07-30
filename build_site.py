@@ -320,6 +320,42 @@ LITHIUM_CALIBER_NOTES = [
     "总计行为口径混杂（权益/100%/销量/拟合）直接求和，仅作量级参考。",
 ]
 
+SILICON_CALENDAR = [
+    # 合盛硅业：季度经营数据公告随季报（4月底/8月底/10月底），工业硅产量官方主源
+    {"date": "2026-08-31", "approx": True, "company": "合盛硅业", "event": "2026 中报+半年度经营数据公告（工业硅产量）"},
+    {"date": "2026-10-31", "approx": True, "company": "合盛硅业", "event": "2026 三季报+前三季度经营数据公告"},
+    {"date": "2027-04-30", "approx": True, "company": "合盛硅业", "event": "2026 年报+2027Q1 经营数据公告"},
+    # 通威/大全/新安/兴发/东岳：A股常规节点
+    {"date": "2026-08-31", "approx": True, "company": "通威股份", "event": "2026 中报（多晶硅停产状态跟踪）"},
+    {"date": "2026-10-31", "approx": True, "company": "通威股份", "event": "2026 三季报"},
+    {"date": "2026-08-31", "approx": True, "company": "大全能源", "event": "2026 中报（季报披露多晶硅产量+指引）"},
+    {"date": "2026-10-31", "approx": True, "company": "大全能源", "event": "2026 三季报"},
+    {"date": "2026-08-31", "approx": True, "company": "新安股份", "event": "2026 中报"},
+    {"date": "2026-08-31", "approx": True, "company": "兴发集团", "event": "2026 中报"},
+    {"date": "2026-08-31", "approx": True, "company": "东岳硅材", "event": "2026 中报"},
+    # 港股：协鑫/新特 中报 8 月下旬、年报 3 月
+    {"date": "2026-08-25", "approx": True, "company": "协鑫科技", "event": "2026 中报（颗粒硅产量）"},
+    {"date": "2027-03-31", "approx": True, "company": "协鑫科技", "event": "2026 年报"},
+    {"date": "2026-08-25", "approx": True, "company": "新特能源", "event": "2026 中报（特变电工中报同步）"},
+    {"date": "2027-03-31", "approx": True, "company": "新特能源", "event": "2026 年报"},
+    # Elkem：季报约季后 2-4 周
+    {"date": "2026-07-15", "approx": True, "company": "Elkem", "event": "2026Q2 季报"},
+    {"date": "2026-10-28", "approx": True, "company": "Elkem", "event": "2026Q3 季报"},
+    # 行业数据源：铁合金在线分企业月度产量（登录后补最新月份）
+    {"date": "2026-08-15", "approx": True, "company": "铁合金在线", "event": "7 月分企业多晶硅/工业硅月度产量（cnfeol.com，需登录）"},
+]
+
+SILICON_CALIBER_NOTES = [
+    "产量单位均为万吨（实物量）；工业硅/多晶硅两板块总计行各自独立。",
+    "多晶硅板块季度产量以「铁合金在线」分企业月度产量三月求和为基准（2023-09 起，用户指定基准源），官方季报/年报用于交叉验证与年度锚定；上市公司 2023Q1-Q3 多为年度值倒算拟合（斜体），2023Q4 起为月度求和实际值。",
+    "合盛硅业工业硅为「季度经营数据公告」产量口径（含自用，与年报口径或有差异）；合盛多晶硅 2025 年起产能利用率为 0（350 亿在建挂账、等待行业出清）。",
+    "通威 2026 年 1 月起多晶硅全面停产（反内卷限产），26Q1-Q2 铁合金在线口径合计约 1.2 万吨为实际值而非缺数；复产视收储/配额政策。",
+    "协鑫科技为颗粒硅+棒状硅合计口径；大全部为 100% 口径（季报披露）；新特能源含新疆老线（部分已停）。",
+    "非上市公司（东方希望/亚洲硅业/青海丽豪/其亚/永昌硅业等）为铁合金在线/调研纪要口径，精度低于上市公司公告。",
+    "Elkem 为销量口径（sales volumes，Silicon products+Silicones 分部），非生产量。",
+    "总计行为口径混杂（公告/铁合金在线/调研/销量/拟合）直接求和，仅作量级参考；两板块存在自用量重叠（多晶硅耗工业硅），不可跨板块相加。",
+]
+
 # ---------------------------------------------------------------------------
 # COMMODITIES 注册表：加新品种 = 加一个条目 + 一个抽取函数
 # ---------------------------------------------------------------------------
@@ -375,6 +411,14 @@ COMMODITIES = {
         "extract": "extract_lithium",
         "calendar": LITHIUM_CALENDAR,
         "caliber_notes": LITHIUM_CALIBER_NOTES,
+        "default_view": "quarter",
+    },
+    "silicon": {
+        "name": "硅",
+        "excel": r"D:\拷贝文件\E\永安\硅产业\全球硅企季度产量梳理.xlsx",
+        "extract": "extract_silicon",
+        "calendar": SILICON_CALENDAR,
+        "caliber_notes": SILICON_CALIBER_NOTES,
         "default_view": "quarter",
     },
 }
@@ -1173,6 +1217,50 @@ def extract_nickel(path):
 
 
 # ---------------------------------------------------------------------------
+# 硅抽取（sheet 结构与铝/镍同构，复用 _read_alu_sheet；工业硅/多晶硅两板块，单位=万吨）
+# ---------------------------------------------------------------------------
+def extract_silicon(path):
+    wb = load_workbook(path, data_only=False)
+    # 板块顺序：工业硅（期货品种锚点）在前，多晶硅（反内卷主线）其次
+    sheet_specs = [
+        ("industrial", "工业硅·季度产量", "工业硅产量"),
+        ("poly", "多晶硅·季度产量", "多晶硅产量"),
+    ]
+    sections = []
+    first_companies = first_quarters = None
+    n_fit_total = 0
+    for sec_key, sheet_name, title in sheet_specs:
+        companies, total, quarters, years, n_fit = _read_alu_sheet(wb[sheet_name], capture_pending=True)
+        n_fit_total += n_fit
+        if first_companies is None:
+            first_companies, first_quarters = companies, quarters
+        sections.append({
+            "key": sec_key,
+            "title": title, "unit": "万吨",
+            "quarters": quarters, "years": years,
+            "companies": companies, "total": total,
+        })
+    # 更新日志：A=日期,B=更新内容,C=数据来源
+    ws = wb["更新日志"]
+    changelog = []
+    for r in range(2, ws.max_row + 1):
+        d = txt(ws.cell(row=r, column=1).value)
+        content = txt(ws.cell(row=r, column=2).value)
+        if not d and not content:
+            continue
+        changelog.append({"date": d, "content": content, "source": txt(ws.cell(row=r, column=3).value)})
+    return {
+        "sections": sections,
+        "costs": None,
+        "capex": None,
+        "changelog": changelog,
+        "overview": section_stats(first_companies, first_quarters, "工业硅"),
+        "last_update": max((c["date"] or "") for c in changelog) if changelog else None,
+        "_fitted": n_fit_total,
+    }
+
+
+# ---------------------------------------------------------------------------
 # 机制 1：缺季拟合（estimated quarters）
 # ---------------------------------------------------------------------------
 # 状态行识别（不拟合）：name/project 出现即排除；reason/note 需「已/完成」级措辞，
@@ -1448,6 +1536,16 @@ FY2027_OUTLOOK = {
         },
         "total": "2027 爬产继续：CGP3 满产+Goulamina 二期+Kathleen Valley 稳态+枧下窝首个完整年+麻米错达产+Finniss 回归，资源端预计再增 15-20%（平台推断）；出清逻辑让位于增量消化，价格弹性取决于储能需求斜率。",
     },
+    "silicon": {
+        "date": "2026-07-30",
+        "companies": {
+            "通威股份": "多晶硅复产视收储平台与配额政策落地，2027 恢复性增长（事件，平台推断）；工业硅（绿色基材广元/包头）配套放量（计划）",
+            "合盛硅业": "工业硅弹性产能随价格回归（当前检修压产）；中部合盛 20 万吨多晶硅项目等待行业出清、批量延后（计划）",
+            "协鑫科技": "颗粒硅低现金成本优势在限产配额下优先保产，2027 配额内满负荷（平台推断）",
+            "大全能源": "库存去化后按配额恢复开工，2027 低基数回升（事件，平台推断）",
+        },
+        "total": "2027 硅料是「去产能政策 vs 新增产能」的决胜年：反内卷限产+「光和谦成」收储平台若落地，通威/协鑫等低基数恢复性增产；但其亚/红狮/宝丰/南玻等新产能投放形成对冲，政策执行力度决定供需再平衡斜率（平台推断）。工业硅端过剩主基调延续——行业产能超 790 万吨、利用率仅五成，合盛弹性产能+西南丰水期复产压制任何反弹高度，去库（SMM 社库 55-56 万吨）是价格弹性的前提。",
+    },
 }
 
 
@@ -1498,6 +1596,13 @@ REVIEW_COMMENTS = {
             "最新财报季（26Q1/澳矿 FY26Q3）：澳矿三强全线超指引——PLS 年化 110%、MinRes 126%、IGO 105%（Greenbushes 品位下滑但 CGP3 爬产对冲）；SQM 销量年化 93% 符合；Rio（Arcadium）87% 不及；紫金 26Q1 年化 6.5 万吨 vs 全年 12 万吨目标仅 54%，H2 需显著提速。",
             "年度看法：供给端 2026 是爬产大年——Greenbushes CGP3、Goulamina 满产、Kathleen Valley 地下爬坡、麻米错投产，资源端同比增量确定性强；成本曲线最左端（Greenbushes A$380-420/dmt）与右端（Liontown A$855-1,045）价差极大，价格若持续低迷，右端矿山（Finniss 已停产保养、Mt Cattlin 养护）退出逻辑仍在，供给出清是底部确认信号。",
             "α 视角：锂是平台内供给弹性最大的品种，过剩出清尚未走完；超额收益更可能出现在「右端成本矿山退出 + 需求端储能超预期」的右侧确认，而非左侧抄底。",
+        ],
+    },
+    "silicon": {
+        "date": "2026-07-30",
+        "lines": [
+            "最新财报季：合盛硅业 2025 工业硅产量 145.47 万吨（-22%，主动减产挺价）、上市首亏 -29.91 亿（光伏停工+17.29 亿减值），2026Q1 归母转正 0.77 亿、毛利率回升至 19%；多晶硅端「反内卷」限产全面兑现——通威 2026 年 1 月起多晶硅全面停产（铁合金在线口径 26H1 仅约 1.2 万吨 vs 25H1 17.3 万吨）、协鑫大规模减产，2026 年 1 月全国硅料产量降至 9 万吨以下，7 月预计产量 9.82 万吨、开工率仅 29.55%。",
+            "年度看法：2026 硅的供给主线是政策限产——「光和谦成」收储平台+配额制约束硅料开工，硅料价格自 6 月低点约 3 万元修复（N 型料 31.9 元/kg）；但工业硅端行业产能超 790 万吨、利用率仅五成，SMM 社库 55-56 万吨历史高位，合盛弹性产能与西南丰水期复产构成反弹天花板，政策底与供应压并存，价格弹性取决于收储落地与去库速度。",
         ],
     },
 }
@@ -1835,7 +1940,8 @@ def main():
     dugald = next((c for c in zinc_sec_mine["companies"] if c["project"] == "Dugald River"), None)
     checks.append(("锌 Dugald River 26Q2 = 4.61", dugald["data"].get("2026Q2") if dugald else None, 4.61))
     # 2026-07-29 起锌矿表新增16家公司、总计行改为全公司行求和，26Q1 总计口径随之变化
-    checks.append(("锌矿总计行 26Q1 = 142.2653", zinc_sec_mine["total"]["data"].get("2026Q1"), 142.2653))
+    # 2026-07-30 Glencore 三矿山改 Zinc in concentrates 口径（Kazzinc Q1 3.39→1.78、McArthur 6.29→6.8、Mount Isa 4.6→6.75），总计 142.2653→143.3153
+    checks.append(("锌矿总计行 26Q1 = 143.3153", zinc_sec_mine["total"]["data"].get("2026Q1"), 143.3153))
     zijin = next((c for c in zinc_sec_mine["companies"] if c["name"] == "紫金矿业"), None)
     checks.append(("锌 紫金矿业 25总计 = 35.7453", zijin["data"].get("2025") if zijin else None, 35.7453))
     fres = next((c for c in zinc_sec_mine["companies"] if c["name"] == "Fresnillo"), None)
