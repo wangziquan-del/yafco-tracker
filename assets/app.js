@@ -649,32 +649,80 @@
 
     var fs = guideFilterState[commodity.key] = guideFilterState[commodity.key] || { comp: {} };
     function rowKey(r) { return r.section + "|" + r.name; }
-    // 公司筛选分组：按一级公司（「·」前缀）归组，同组多行给整组开关
+    // 一级公司归组：优先 sections 的 group 映射（Vedanta 系等），其次同名多行（镍/铜）
+    var nameToGroup = {}, nameCount = {};
+    commodity.sections.forEach(function (sec) {
+      sec.companies.forEach(function (c) {
+        if (c.group) nameToGroup[c.name] = c.group;
+        nameCount[c.name] = (nameCount[c.name] || 0) + 1;
+      });
+    });
+    function groupOf(r) {
+      var base = r.name.split("·")[0];
+      if (nameToGroup[base]) return nameToGroup[base];
+      if ((nameCount[base] || 0) > 1) return base;
+      return null;
+    }
+    var trueG = {};
+    gp.rows.forEach(function (r) { var k = groupOf(r); if (k) trueG[k] = (trueG[k] || 0) + 1; });
+    // 公司筛选分组：按一级公司归组，同组多行给整组开关
     var groups = [], byP = {};
     gp.rows.forEach(function (r) {
-      var p = r.name.split("·")[0];
+      var p = groupOf(r) || r.name.split("·")[0];
       if (!byP[p]) { byP[p] = { name: p, items: [] }; groups.push(byP[p]); }
       byP[p].items.push(r);
     });
 
     function renderTable() {
       var rows = gp.rows.filter(function (r) { return !fs.comp[rowKey(r)]; });
+      // 渲染分组（保持原顺序）：集团组 = 父行小计 + 子行缩进；独立行带「独立」标
+      var rgroups = [], rby = {};
+      rows.forEach(function (r) {
+        var k = groupOf(r) || r.name;
+        if (!rby[k]) { rby[k] = { name: k, grp: groupOf(r), items: [] }; rgroups.push(rby[k]); }
+        rby[k].items.push(r);
+      });
       var html = '<table class="data-table"><thead><tr>' +
         "<th>板块</th><th>公司</th><th>FY2026 指引（原文）</th><th>指引折算</th>" +
         "<th>2026 已完成</th><th>年化</th><th>完成度</th><th>状态</th><th>2027 展望</th><th>备注</th></tr></thead><tbody>";
-      rows.forEach(function (r) {
-        var guideCvt = r.lo !== null
-          ? (r.lo === r.hi ? fmtNum(r.lo) : fmtNum(r.lo) + "–" + fmtNum(r.hi)) + " " + esc(r.unit)
-          : '<span class="flat">-</span>';
-        html += "<tr><td>" + esc(r.section) + "</td><td>" + esc(r.name) + "</td>" +
-          '<td style="text-align:left;font-family:inherit;white-space:normal;min-width:140px">' + esc(r.guide_raw || "-") + "</td>" +
-          "<td>" + guideCvt + "</td>" +
-          "<td>" + (r.completed !== null ? fmtNum(r.completed) : '<span class="flat">-</span>') + "</td>" +
-          "<td>" + (r.annualized !== null ? fmtNum(r.annualized) : '<span class="flat">-</span>') + "</td>" +
-          "<td>" + (r.pct !== null ? "<b>" + r.pct.toFixed(0) + "%</b>" : '<span class="flat">-</span>') + "</td>" +
-          "<td>" + statusBadge(r.status) + "</td>" +
-          '<td style="text-align:left;font-family:inherit;white-space:normal;min-width:150px;color:#7fa3d0">' + esc(r.fy2027 || "-") + "</td>" +
-          '<td style="text-align:left;font-family:inherit;color:#5b6879">' + esc(r.note || "") + "</td></tr>";
+      rgroups.forEach(function (g) {
+        var isGroup = g.grp && (trueG[g.grp] || 0) > 1;
+        if (isGroup) {  // 集团小计父行：指引/已完成/年化求和，完成度按合计中枢重算
+          var lo = 0, hi = 0, comp = 0, ann = 0, nlo = 0, ncomp = 0, nann = 0;
+          g.items.forEach(function (r) {
+            if (r.lo !== null) { lo += r.lo; nlo++; }
+            if (r.hi !== null) hi += r.hi;
+            if (r.completed !== null) { comp += r.completed; ncomp++; }
+            if (r.annualized !== null) { ann += r.annualized; nann++; }
+          });
+          var mid = nlo ? (lo + hi) / 2 : null;
+          var pct2 = (mid && nann) ? ann / mid * 100 : null;
+          var st = pct2 === null ? null : (pct2 >= 100 ? "超出" : pct2 >= 90 ? "符合" : "不及");
+          html += '<tr class="grp-row"><td>' + esc(g.items[0].section) + "</td><td><b>" + esc(g.name) + "</b>" +
+            ' <span class="grp-n">集团小计 ' + g.items.length + " 项目</span></td>" +
+            '<td class="flat">-</td><td>' +
+            (nlo ? fmtNum(lo) + "–" + fmtNum(hi) + " " + esc(g.items[0].unit) + (nlo < g.items.length ? ' <small>部分</small>' : "") : '<span class="flat">-</span>') + "</td><td>" +
+            (ncomp ? fmtNum(comp) : '<span class="flat">-</span>') + "</td><td>" +
+            (nann ? fmtNum(ann) : '<span class="flat">-</span>') + "</td><td>" +
+            (pct2 !== null ? "<b>" + pct2.toFixed(0) + "%</b>" : '<span class="flat">-</span>') + "</td><td>" +
+            (st ? statusBadge(st) : '<span class="flat">-</span>') + "</td>" +
+            '<td class="flat">-</td><td style="color:#5b6879">集团小计</td></tr>';
+        }
+        g.items.forEach(function (r) {
+          var guideCvt = r.lo !== null
+            ? (r.lo === r.hi ? fmtNum(r.lo) : fmtNum(r.lo) + "–" + fmtNum(r.hi)) + " " + esc(r.unit)
+            : '<span class="flat">-</span>';
+          var nameCell = esc(r.name) + (isGroup ? "" : ' <span class="solo-badge" title="独立公司：不属于任何集团分组">独立</span>');
+          html += "<tr><td>" + esc(r.section) + "</td><td" + (isGroup ? ' class="child-cell"' : "") + ">" + nameCell + "</td>" +
+            '<td style="text-align:left;font-family:inherit;white-space:normal;min-width:140px">' + esc(r.guide_raw || "-") + "</td>" +
+            "<td>" + guideCvt + "</td>" +
+            "<td>" + (r.completed !== null ? fmtNum(r.completed) : '<span class="flat">-</span>') + "</td>" +
+            "<td>" + (r.annualized !== null ? fmtNum(r.annualized) : '<span class="flat">-</span>') + "</td>" +
+            "<td>" + (r.pct !== null ? "<b>" + r.pct.toFixed(0) + "%</b>" : '<span class="flat">-</span>') + "</td>" +
+            "<td>" + statusBadge(r.status) + "</td>" +
+            '<td style="text-align:left;font-family:inherit;white-space:normal;min-width:150px;color:#7fa3d0">' + esc(r.fy2027 || "-") + "</td>" +
+            '<td style="text-align:left;font-family:inherit;color:#5b6879">' + esc(r.note || "") + "</td></tr>";
+        });
       });
       if (commodity.outlook2027 && commodity.outlook2027.total) {
         html += '<tr class="total-row outlook2027-row"><td colspan="2"><b>2027 品种总量展望</b>（' +
