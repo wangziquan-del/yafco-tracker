@@ -326,3 +326,11 @@ a.news-title:hover { color: var(--accent); text-decoration: underline; }
 .data-table td.child-cell { padding-left: 22px; font-weight: 400; }
 .data-table th.sortable { cursor: pointer; user-select: none; }
 .data-table th.sortable:hover { color: var(--accent-dim); }
+
+/* 独立公司标签 + 分组子行引导线（防归属误读） */
+.solo-badge {
+  display: inline-block; margin-left: 6px; padding: 0 5px; border-radius: 4px;
+  font-size: 10px; font-weight: 400; color: var(--faint);
+  border: 1px solid var(--border); background: var(--panel2); vertical-align: 1px;
+}
+.data-table td.child-cell { border-left: 3px solid rgba(184,145,47,.40); }

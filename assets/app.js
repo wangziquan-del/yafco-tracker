@@ -235,6 +235,9 @@
         });
         groups.sort(function (a, b) { return cmpVal(a._sum, b._sum) * sort.dir; });
       }
+      // 真·分组按「全量公司」判定（筛选只剩一行时不降级为独立行，避免归属误读）
+      var trueGroupKeys = {};
+      buildGroups(sec.companies).forEach(function (g) { if (g.items.length > 1) trueGroupKeys[g.name] = true; });
       var html = '<table class="data-table"><thead><tr><th class="sortable" data-sort="" title="点击恢复默认顺序">公司</th><th>国家/地区</th>';
       ps.forEach(function (p) {
         var arrow = sort && sort.p === p ? (sort.dir < 0 ? " ▼" : " ▲") : "";
@@ -242,7 +245,7 @@
       });
       html += "<th>最新同比</th></tr></thead><tbody>";
       groups.forEach(function (g) {
-        var isGroup = g.items.length > 1;
+        var isGroup = !!trueGroupKeys[g.name];
         var collapsed = isGroup && fState.collapsed && fState.collapsed[g.name];
         if (isGroup) {  // 一级公司父行：小计 + 折叠开关
           html += '<tr class="grp-row" data-grp="' + esc(g.name) + '" title="点击折叠/展开"><td>' +
@@ -267,6 +270,7 @@
           var label = isGroup && c.project
             ? esc(c.project) + est
             : esc(c.name) + est + (c.project ? ' <span style="color:#5b6879">· ' + esc(c.project) + "</span>" : "");
+          if (!isGroup) label += ' <span class="solo-badge" title="独立公司：不属于任何集团分组">独立</span>';
           var nameTitle = c.est && c.est_note ? ' title="含估算/推算：' + esc(c.est_note) + '"' : "";
           html += "<tr><td" + (isGroup ? ' class="child-cell"' : "") + nameTitle + ">" + label + "</td><td>" + esc(c.country || "—") + "</td>";
           ps.forEach(function (p) {
