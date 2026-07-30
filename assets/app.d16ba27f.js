@@ -629,6 +629,7 @@
   }
 
   /* ================= 区块：2026 指引 vs 年化进度 ================= */
+  var guideFilterState = {}; // commodity.key -> { comp:{rowKey:true=隐藏} }
   function renderGuideProgress(container, commodity) {
     var gp = commodity.guide_progress;
     if (!gp || !gp.rows || !gp.rows.length) return;
@@ -639,34 +640,109 @@
       "仅列有指引或 2026 已披露数据的公司；仅 Q1 年化×4 / 含 Q2 年化×2，含季节性风险"));
     section.appendChild(head);
     var panel = el("div", "panel");
+    var filterBar = el("div", "tbl-filter");
+    panel.appendChild(filterBar);
     var wrap = el("div", "table-wrap");
-    var html = '<table class="data-table"><thead><tr>' +
-      "<th>板块</th><th>公司</th><th>FY2026 指引（原文）</th><th>指引折算</th>" +
-      "<th>2026 已完成</th><th>年化</th><th>完成度</th><th>状态</th><th>2027 展望</th><th>备注</th></tr></thead><tbody>";
-    gp.rows.forEach(function (r) {
-      var guideCvt = r.lo !== null
-        ? (r.lo === r.hi ? fmtNum(r.lo) : fmtNum(r.lo) + "–" + fmtNum(r.hi)) + " " + esc(r.unit)
-        : '<span class="flat">-</span>';
-      html += "<tr><td>" + esc(r.section) + "</td><td>" + esc(r.name) + "</td>" +
-        '<td style="text-align:left;font-family:inherit;white-space:normal;min-width:140px">' + esc(r.guide_raw || "-") + "</td>" +
-        "<td>" + guideCvt + "</td>" +
-        "<td>" + (r.completed !== null ? fmtNum(r.completed) : '<span class="flat">-</span>') + "</td>" +
-        "<td>" + (r.annualized !== null ? fmtNum(r.annualized) : '<span class="flat">-</span>') + "</td>" +
-        "<td>" + (r.pct !== null ? "<b>" + r.pct.toFixed(0) + "%</b>" : '<span class="flat">-</span>') + "</td>" +
-        "<td>" + statusBadge(r.status) + "</td>" +
-        '<td style="text-align:left;font-family:inherit;white-space:normal;min-width:150px;color:#7fa3d0">' + esc(r.fy2027 || "-") + "</td>" +
-        '<td style="text-align:left;font-family:inherit;color:#5b6879">' + esc(r.note || "") + "</td></tr>";
-    });
-    if (commodity.outlook2027 && commodity.outlook2027.total) {
-      html += '<tr class="total-row outlook2027-row"><td colspan="2"><b>2027 品种总量展望</b>（' +
-        esc(commodity.outlook2027.date) + "）</td>" +
-        '<td colspan="8" style="text-align:left;font-family:inherit;white-space:normal">' +
-        esc(commodity.outlook2027.total) + "</td></tr>";
-    }
-    wrap.innerHTML = html + "</tbody></table>";
     panel.appendChild(wrap);
     section.appendChild(panel);
     container.appendChild(section);
+
+    var fs = guideFilterState[commodity.key] = guideFilterState[commodity.key] || { comp: {} };
+    function rowKey(r) { return r.section + "|" + r.name; }
+    // 公司筛选分组：按一级公司（「·」前缀）归组，同组多行给整组开关
+    var groups = [], byP = {};
+    gp.rows.forEach(function (r) {
+      var p = r.name.split("·")[0];
+      if (!byP[p]) { byP[p] = { name: p, items: [] }; groups.push(byP[p]); }
+      byP[p].items.push(r);
+    });
+
+    function renderTable() {
+      var rows = gp.rows.filter(function (r) { return !fs.comp[rowKey(r)]; });
+      var html = '<table class="data-table"><thead><tr>' +
+        "<th>板块</th><th>公司</th><th>FY2026 指引（原文）</th><th>指引折算</th>" +
+        "<th>2026 已完成</th><th>年化</th><th>完成度</th><th>状态</th><th>2027 展望</th><th>备注</th></tr></thead><tbody>";
+      rows.forEach(function (r) {
+        var guideCvt = r.lo !== null
+          ? (r.lo === r.hi ? fmtNum(r.lo) : fmtNum(r.lo) + "–" + fmtNum(r.hi)) + " " + esc(r.unit)
+          : '<span class="flat">-</span>';
+        html += "<tr><td>" + esc(r.section) + "</td><td>" + esc(r.name) + "</td>" +
+          '<td style="text-align:left;font-family:inherit;white-space:normal;min-width:140px">' + esc(r.guide_raw || "-") + "</td>" +
+          "<td>" + guideCvt + "</td>" +
+          "<td>" + (r.completed !== null ? fmtNum(r.completed) : '<span class="flat">-</span>') + "</td>" +
+          "<td>" + (r.annualized !== null ? fmtNum(r.annualized) : '<span class="flat">-</span>') + "</td>" +
+          "<td>" + (r.pct !== null ? "<b>" + r.pct.toFixed(0) + "%</b>" : '<span class="flat">-</span>') + "</td>" +
+          "<td>" + statusBadge(r.status) + "</td>" +
+          '<td style="text-align:left;font-family:inherit;white-space:normal;min-width:150px;color:#7fa3d0">' + esc(r.fy2027 || "-") + "</td>" +
+          '<td style="text-align:left;font-family:inherit;color:#5b6879">' + esc(r.note || "") + "</td></tr>";
+      });
+      if (commodity.outlook2027 && commodity.outlook2027.total) {
+        html += '<tr class="total-row outlook2027-row"><td colspan="2"><b>2027 品种总量展望</b>（' +
+          esc(commodity.outlook2027.date) + "）</td>" +
+          '<td colspan="8" style="text-align:left;font-family:inherit;white-space:normal">' +
+          esc(commodity.outlook2027.total) + "</td></tr>";
+      }
+      wrap.innerHTML = html + "</tbody></table>";
+    }
+
+    function renderBar() {
+      filterBar.innerHTML =
+        '<details class="tf"><summary>公司筛选<b class="tf-n"></b></summary><div class="tf-body">' +
+        groups.map(function (g, gi) {
+          if (g.items.length === 1) {
+            return '<label class="tf-item"><input type="checkbox" data-gcomp="' + esc(rowKey(g.items[0])) + '"> ' +
+              esc(g.items[0].name) + "</label>";
+          }
+          return '<div class="tf-group"><label class="tf-master"><input type="checkbox" data-gmaster="' + gi + '"> ' +
+            esc(g.name) + "</label>" +
+            g.items.map(function (r) {
+              return '<label class="tf-item"><input type="checkbox" data-gcomp="' + esc(rowKey(r)) + '"> ' +
+                esc(r.name) + "</label>";
+            }).join("") + "</div>";
+        }).join("") +
+        '</div></details>' +
+        '<button class="tf-reset" type="button">重置筛选</button><span class="tf-hint"></span>';
+
+      function refresh() {
+        filterBar.querySelectorAll("[data-gcomp]").forEach(function (box) {
+          box.checked = !fs.comp[box.getAttribute("data-gcomp")];
+        });
+        filterBar.querySelectorAll("[data-gmaster]").forEach(function (box) {
+          var g = groups[+box.getAttribute("data-gmaster")];
+          var off = g.items.filter(function (r) { return fs.comp[rowKey(r)]; }).length;
+          box.checked = off === 0;
+          box.indeterminate = off > 0 && off < g.items.length;
+        });
+        var nc = gp.rows.filter(function (r) { return fs.comp[rowKey(r)]; }).length;
+        filterBar.querySelector(".tf-n").textContent = nc ? " 隐 " + nc : "";
+        filterBar.querySelector(".tf-hint").textContent = nc
+          ? "已隐藏 " + nc + " 行；2027 品种总量展望行始终保留"
+          : "可按一级公司整组或单项目勾选隐藏";
+      }
+      filterBar.querySelectorAll("[data-gcomp]").forEach(function (box) {
+        box.addEventListener("change", function () {
+          var k = box.getAttribute("data-gcomp");
+          if (box.checked) delete fs.comp[k]; else fs.comp[k] = true;
+          refresh(); renderTable();
+        });
+      });
+      filterBar.querySelectorAll("[data-gmaster]").forEach(function (box) {
+        box.addEventListener("change", function () {
+          var g = groups[+box.getAttribute("data-gmaster")];
+          g.items.forEach(function (r) {
+            var k = rowKey(r);
+            if (box.checked) delete fs.comp[k]; else fs.comp[k] = true;
+          });
+          refresh(); renderTable();
+        });
+      });
+      filterBar.querySelector(".tf-reset").addEventListener("click", function () {
+        fs.comp = {}; refresh(); renderTable();
+      });
+      refresh();
+    }
+
+    renderBar(); renderTable();
   }
 
   /* ================= 区块：成本与资本开支 ================= */
