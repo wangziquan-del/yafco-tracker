@@ -625,14 +625,18 @@ def extract_tin(path):
             quarterly["Metals X"][q] = prod
         metalsx_cost.append({"q": q, "c1": c1, "aisc": aisc, "production": prod})
     # Timah：行2起，A=季度，D=锡矿产量，E=精炼锡产量，F=精炼锡销量
-    # （按季度标签正则筛选，行数随新季追加/插入变化，勿写死行范围）
+    # （按季度标签正则筛选；表下方存在同一数据的静态副本块，季度标签重复即终止读取）
     import re as _re
     ws = wb["Timah"]
     timah_refined_q = {}
+    _seen_q = set()
     for r in range(2, ws.max_row + 1):
         q = txt(ws.cell(row=r, column=1).value)
         if not q or not _re.fullmatch(r"20\d{2}Q[1-4]", q):
             continue
+        if q in _seen_q:
+            break
+        _seen_q.add(q)
         ore = num(ws.cell(row=r, column=4).value)
         ref = num(ws.cell(row=r, column=5).value)
         if ore is not None:
@@ -1989,9 +1993,9 @@ def main():
     checks.append(("机制1 兴业 2023Q2 带 est_q 标记", 1 if xy.get("est_q", {}).get("2023Q2") else 0, 1))
     # 机制 2 指引进度：PT Timah 2026 指引 30,000 吨，26Q1 6,312 → 年化 25,248（84%，不及）
     timah_row = next(r for r in tin["guide_progress"]["rows"] if r["name"] == "PT Timah")
-    # 2026-07-31 Timah 26Q2（矿 5,920/精炼 5,235）入库后滚动年化为 23,858
-    checks.append(("机制2 Timah 年化 = 23858", timah_row["annualized"], 23858))
-    checks.append(("机制2 Timah 进度 = 79.53%", timah_row["pct"], 23858 / 30000 * 100))
+    # 2026-07-31 Timah 26Q2（矿 5,920/精炼 5,235）入库后滚动年化为 24,464
+    checks.append(("机制2 Timah 年化 = 24464", timah_row["annualized"], 24464))
+    checks.append(("机制2 Timah 进度 = 81.55%", timah_row["pct"], 24464 / 30000 * 100))
     # 铜接入核对
     cu = next(c for c in commodities if c["key"] == "copper")
     cu_mine, cu_dom = cu["sections"]
