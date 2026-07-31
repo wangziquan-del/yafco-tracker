@@ -1,5 +1,21 @@
 [
   {
+    "date": "2026-07-27",
+    "commodity": "锡",
+    "category": "公司",
+    "impact": "mid",
+    "title": "Metals X 26Q2 锡精矿 2,809 吨（环比 -2.7%），价升补量减：EBITDA +2.9%",
+    "summary": "Metals X 6 月季报（7/27）：Renison 锡精矿（100% 口径）2,809 吨（环比 -2.7%，设备可用率+采场调度问题，非结构性下滑）；估算收入 A$207.4M（+3.0%）、EBITDA A$125.9M（+2.9%）、利润率约 61%——锡价上涨完全吸收量减。现金 A$374M。Rentails 尾矿再处理 FEED 年底完成、FID 临近；Renison 矿山寿命计划与储量更新下季度发布。C1/AISC 官方值待季报明细回填。",
+    "source": "Metals X 季报/Discovery Alert",
+    "url": "https://discoveryalert.com.au/metals-x-quarterly-earnings-tin-prices-june-2026-renison/",
+    "affects": [
+      {
+        "company": "Metals X",
+        "note": "26Q2 锡精矿 2,809 吨（-2.7%），设备/调度问题；Rentails FID 2026 年底"
+      }
+    ]
+  },
+  {
     "date": "2026-04-10",
     "commodity": "铝",
     "category": "供应",

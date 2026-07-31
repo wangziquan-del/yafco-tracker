@@ -609,12 +609,14 @@ def extract_tin(path):
         if prod is not None:
             quarterly["Alphamin"][q] = prod
         alphamin_cost.append({"q": q, "aisc": aisc, "production": prod, "sales": sale})
-    # Metals X：行11-31，A=季度，B=C1(A$/t)，C=AISC(A$/t)，E=产量(吨，100%口径)
+    # Metals X：行11起，A=季度，B=C1(A$/t)，C=AISC(A$/t)，E=产量(吨，100%口径)
+    # （按季度标签正则筛选，行数随新季追加变化，勿写死行范围）
+    import re as _re
     ws = wb["Metals X"]
     metalsx_cost = []
-    for r in range(11, 32):
+    for r in range(11, ws.max_row + 1):
         q = txt(ws.cell(row=r, column=1).value)
-        if not q:
+        if not q or not _re.fullmatch(r"20\d{2}Q[1-4]", q):
             continue
         prod = num(ws.cell(row=r, column=5).value)
         c1 = num(ws.cell(row=r, column=2).value)
