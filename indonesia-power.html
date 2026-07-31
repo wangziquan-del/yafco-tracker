@@ -709,6 +709,10 @@ tr:nth-child(even) td {background:#24344a}
 .ok {background:#22c55e}.mid {background:#f59e0b}.tight {background:#ef4444}
 .bval {width:110px;color:#fbbf24;font-weight:bold}
 .bnote {width:260px;color:#94a3b8;font-size:12px}
+tr.filt td {background:#0b3644;padding:5px 8px}
+tr.filt input {width:100%;background:#0f172a;border:1px solid #475569;border-radius:5px;color:#e2e8f0;font-size:12px;padding:3px 7px}
+tr.filt input::placeholder {color:#475569}
+tr.filt input:focus {outline:none;border-color:#0ea5e9}
 .note {background:#1e293b;border-left:4px solid #f59e0b;border-radius:8px;padding:12px 16px;font-size:13px;line-height:1.8;color:#cbd5e1;margin:14px 0}
 .footer {margin-top:26px;color:#64748b;font-size:12px;line-height:1.7}
 </style></head><body>
@@ -811,21 +815,49 @@ PTS.forEach(function (p) {
   (LAYERS[p.cat] = LAYERS[p.cat] || []).push(m);
   m.addTo(map);
 });
-function filterCat(cat) {
+var curCat = 'all';
+function applyFilters() {
   document.querySelectorAll('.fbtn').forEach(function (b) {
-    b.classList.toggle('on', b.dataset.cat === cat);
+    b.classList.toggle('on', b.dataset.cat === curCat);
   });
-  document.querySelectorAll('tr[data-cat]').forEach(function (tr) {
-    tr.style.display = (cat === 'all' || tr.dataset.cat === cat) ? '' : 'none';
+  document.querySelectorAll('table').forEach(function (tbl) {
+    var inputs = tbl.querySelectorAll('tr.filt input');
+    tbl.querySelectorAll('tbody tr').forEach(function (tr) {
+      var ok = (curCat === 'all' || tr.dataset.cat === curCat);
+      if (ok) {
+        tr.querySelectorAll('td').forEach(function (td, i) {
+          if (!ok || !inputs[i]) return;
+          var kw = inputs[i].value.trim().toLowerCase();
+          if (kw && td.innerText.toLowerCase().indexOf(kw) < 0) ok = false;
+        });
+      }
+      tr.style.display = ok ? '' : 'none';
+    });
   });
   Object.keys(LAYERS).forEach(function (c) {
     LAYERS[c].forEach(function (m) {
-      if (cat === 'all' || c === cat) { m.addTo(map); } else { map.removeLayer(m); }
+      if (curCat === 'all' || c === curCat) { m.addTo(map); } else { map.removeLayer(m); }
     });
   });
 }
+// 每个表格表头下自动加一行逐列筛选框
+document.querySelectorAll('table').forEach(function (tbl) {
+  var ncol = tbl.querySelectorAll('thead th').length;
+  if (!ncol) return;
+  var fr = document.createElement('tr');
+  fr.className = 'filt';
+  for (var i = 0; i < ncol; i++) {
+    var td = document.createElement('td');
+    var inp = document.createElement('input');
+    inp.placeholder = '筛选…';
+    inp.addEventListener('input', applyFilters);
+    td.appendChild(inp);
+    fr.appendChild(td);
+  }
+  tbl.querySelector('thead').appendChild(fr);
+});
 document.querySelectorAll('.fbtn').forEach(function (b) {
-  b.addEventListener('click', function () { filterCat(b.dataset.cat); });
+  b.addEventListener('click', function () { curCat = b.dataset.cat; applyFilters(); });
 });
 </script>
 </body></html>
