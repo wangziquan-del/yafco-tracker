@@ -3,6 +3,20 @@
   "updated": "2026-07-31",
   "items": [
     {
+      "commodity": "铝",
+      "date": "2026-03-15",
+      "ongoing": true,
+      "company": "Mozal（South32，莫桑比克）",
+      "country": "莫桑比克",
+      "type": "电力合同断签",
+      "dir": "down",
+      "capacity": "约 58 万吨/年（非洲最大铝厂之一）",
+      "impact": "HCB 水电供电合同到期续约失败，3/15 进入 care & maintenance 全面停产，周边 5 家配套企业同步停运；2025Q4「缺电」行情导火索",
+      "recovery": "重启需新电力协议（电价+与政府博弈），时长未定；中信建投：除 Mozal 外近 4-5 年难见同类断签",
+      "source": "South32 公告/中信建投(2026-04)",
+      "url": "https://mp.weixin.qq.com/s/QD7ZxXv-mGNEQM6e_UshZw"
+    },
+    {
       "commodity": "锌",
       "date": "2026-03-14",
       "ongoing": true,
@@ -238,7 +252,7 @@
       "dir": "up",
       "capacity": "约 22.8 万吨/年",
       "impact": "停产后重启，2026 年底恢复至 75%（约 17 万吨）",
-      "recovery": "2027 全年贡献，海外复产增量的组成部分",
+      "recovery": "2027 全年贡献，海外复产增量的组成部分；阿拉丁口径 3 月末已恢复 90% 槽数、年中爬完（与产量口径有差异）",
       "source": "Alcoa 公告/平台整理"
     },
     {
@@ -249,7 +263,7 @@
       "type": "永久退出",
       "dir": "down",
       "capacity": "19.5 万吨/年",
-      "impact": "14 个月临时期后 7 月永久停产，结束 70 余年生产",
+      "impact": "14 个月临时期后 7 月永久停产，结束 70 余年生产；注：2025-11 曾续电至 2026-12，中信建投(2026-04)曾判断大概率续 10 年长约——7 月仍永久关停，续电≠保产，经济账主导",
       "recovery": "永久退出，不恢复",
       "source": "天下铝讯",
       "url": "https://mp.weixin.qq.com/s/7UiWNUProKM7lYsz9cLLyg"
