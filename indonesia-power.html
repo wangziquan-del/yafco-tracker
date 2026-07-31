@@ -709,10 +709,20 @@ tr:nth-child(even) td {background:#24344a}
 .ok {background:#22c55e}.mid {background:#f59e0b}.tight {background:#ef4444}
 .bval {width:110px;color:#fbbf24;font-weight:bold}
 .bnote {width:260px;color:#94a3b8;font-size:12px}
-tr.filt td {background:#0b3644;padding:5px 8px}
-tr.filt input {width:100%;background:#0f172a;border:1px solid #475569;border-radius:5px;color:#e2e8f0;font-size:12px;padding:3px 7px}
-tr.filt input::placeholder {color:#475569}
-tr.filt input:focus {outline:none;border-color:#0ea5e9}
+th {cursor:pointer;user-select:none;position:relative}
+th .sortmark {color:#f59e0b;margin-left:3px}
+th .fbtn2 {margin-left:5px;background:transparent;border:none;color:#7dd3fc;cursor:pointer;font-size:11px;padding:0 2px}
+th .fbtn2.on {color:#f59e0b}
+th .fbtn2:hover {color:#fbbf24}
+.fdrop {position:absolute;z-index:2000;background:#1e293b;border:1px solid #475569;border-radius:10px;
+        padding:10px;min-width:210px;max-width:280px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.fdrop input {width:100%;background:#0f172a;border:1px solid #475569;border-radius:5px;color:#e2e8f0;font-size:12px;padding:4px 8px;margin-bottom:6px}
+.fdrop .fvals {max-height:220px;overflow-y:auto}
+.fdrop label {display:flex;gap:6px;align-items:center;font-size:12.5px;color:#cbd5e1;padding:3px 2px;cursor:pointer}
+.fdrop label:hover {background:#24344a}
+.fdrop .fops {display:flex;gap:6px;margin-bottom:6px}
+.fdrop .fops button {flex:1;background:#0c4a6e;color:#e0f2fe;border:none;border-radius:5px;padding:3px 0;font-size:12px;cursor:pointer}
+.fdrop .fops button:hover {background:#0ea5e9;color:#0f172a}
 .note {background:#1e293b;border-left:4px solid #f59e0b;border-radius:8px;padding:12px 16px;font-size:13px;line-height:1.8;color:#cbd5e1;margin:14px 0}
 .footer {margin-top:26px;color:#64748b;font-size:12px;line-height:1.7}
 </style></head><body>
@@ -816,22 +826,30 @@ PTS.forEach(function (p) {
   m.addTo(map);
 });
 var curCat = 'all';
+// 每表每列的勾选筛选状态：{tableIdx: {colIdx: Set(被取消勾选值)}}——默认全选
+var colFilters = {};
+function rowPasses(tr, tbl, tIdx) {
+  if (curCat !== 'all' && tr.dataset.cat !== curCat) return false;
+  var tf = colFilters[tIdx] || {};
+  var cells = tr.querySelectorAll('td');
+  for (var ci in tf) {
+    var txt = (cells[ci] ? cells[ci].innerText : '').trim();
+    if (tf[ci].has(txt)) return false;   // 被取消勾选的值
+  }
+  return true;
+}
 function applyFilters() {
   document.querySelectorAll('.fbtn').forEach(function (b) {
     b.classList.toggle('on', b.dataset.cat === curCat);
   });
-  document.querySelectorAll('table').forEach(function (tbl) {
-    var inputs = tbl.querySelectorAll('tr.filt input');
+  document.querySelectorAll('table').forEach(function (tbl, tIdx) {
     tbl.querySelectorAll('tbody tr').forEach(function (tr) {
-      var ok = (curCat === 'all' || tr.dataset.cat === curCat);
-      if (ok) {
-        tr.querySelectorAll('td').forEach(function (td, i) {
-          if (!ok || !inputs[i]) return;
-          var kw = inputs[i].value.trim().toLowerCase();
-          if (kw && td.innerText.toLowerCase().indexOf(kw) < 0) ok = false;
-        });
-      }
-      tr.style.display = ok ? '' : 'none';
+      tr.style.display = rowPasses(tr, tbl, tIdx) ? '' : 'none';
+    });
+    // 有筛选生效时高亮 ▾
+    tbl.querySelectorAll('th .fbtn2').forEach(function (b) {
+      var tf = (colFilters[tIdx] || {})[b.dataset.col];
+      b.classList.toggle('on', !!(tf && tf.size));
     });
   });
   Object.keys(LAYERS).forEach(function (c) {
@@ -840,21 +858,99 @@ function applyFilters() {
     });
   });
 }
-// 每个表格表头下自动加一行逐列筛选框
-document.querySelectorAll('table').forEach(function (tbl) {
-  var ncol = tbl.querySelectorAll('thead th').length;
-  if (!ncol) return;
-  var fr = document.createElement('tr');
-  fr.className = 'filt';
-  for (var i = 0; i < ncol; i++) {
-    var td = document.createElement('td');
-    var inp = document.createElement('input');
-    inp.placeholder = '筛选…';
-    inp.addEventListener('input', applyFilters);
-    td.appendChild(inp);
-    fr.appendChild(td);
+// ---- 表头排序 ----
+function sortTable(tbl, colIdx, th) {
+  var tbody = tbl.querySelector('tbody');
+  var rows = Array.from(tbody.querySelectorAll('tr'));
+  var asc = th.dataset.asc !== '1';
+  tbl.querySelectorAll('th').forEach(function (h) {
+    h.dataset.asc = ''; var m = h.querySelector('.sortmark'); if (m) m.textContent = '';
+  });
+  th.dataset.asc = asc ? '1' : '0';
+  th.querySelector('.sortmark').textContent = asc ? '▲' : '▼';
+  rows.sort(function (a, b) {
+    var x = a.children[colIdx] ? a.children[colIdx].innerText.trim() : '';
+    var y = b.children[colIdx] ? b.children[colIdx].innerText.trim() : '';
+    var nx = parseFloat(x.replace(/[^0-9.\-]/g, '')), ny = parseFloat(y.replace(/[^0-9.\-]/g, ''));
+    var cmp = (!isNaN(nx) && !isNaN(ny)) ? nx - ny : x.localeCompare(y, 'zh');
+    return asc ? cmp : -cmp;
+  });
+  rows.forEach(function (r) { tbody.appendChild(r); });
+}
+// ---- Excel 式下拉筛选 ----
+var drop = null;
+function closeDrop() { if (drop) { drop.remove(); drop = null; } }
+function openDrop(tbl, tIdx, colIdx, anchor) {
+  closeDrop();
+  var vals = {};
+  tbl.querySelectorAll('tbody tr').forEach(function (tr) {
+    var td = tr.querySelectorAll('td')[colIdx];
+    if (td) vals[td.innerText.trim()] = true;
+  });
+  var uniq = Object.keys(vals).sort(function (a, b) { return a.localeCompare(b, 'zh'); });
+  var hidden = ((colFilters[tIdx] || {})[colIdx]) || new Set();
+  drop = document.createElement('div');
+  drop.className = 'fdrop';
+  drop.innerHTML = '<input placeholder="搜索值…"><div class="fops"><button type="button" data-op="all">全选</button><button type="button" data-op="none">清空</button></div><div class="fvals"></div>';
+  var box = drop.querySelector('.fvals');
+  uniq.forEach(function (v) {
+    var lb = document.createElement('label');
+    var cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.checked = !hidden.has(v); cb.dataset.v = v;
+    lb.appendChild(cb); lb.appendChild(document.createTextNode(v.length > 60 ? v.slice(0, 60) + '…' : v));
+    box.appendChild(lb);
+  });
+  var rect = anchor.getBoundingClientRect();
+  drop.style.left = Math.min(rect.left + window.scrollX, window.innerWidth - 300) + 'px';
+  drop.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+  document.body.appendChild(drop);
+  drop.querySelector('input').addEventListener('input', function () {
+    var kw = this.value.trim().toLowerCase();
+    box.querySelectorAll('label').forEach(function (lb) {
+      lb.style.display = lb.innerText.toLowerCase().indexOf(kw) >= 0 ? '' : 'none';
+    });
+  });
+  drop.querySelector('[data-op=all]').addEventListener('click', function () {
+    box.querySelectorAll('input[type=checkbox]').forEach(function (c) { c.checked = true; });
+    commit();
+  });
+  drop.querySelector('[data-op=none]').addEventListener('click', function () {
+    box.querySelectorAll('input[type=checkbox]').forEach(function (c) { c.checked = false; });
+    commit();
+  });
+  box.addEventListener('change', commit);
+  function commit() {
+    var h = new Set();
+    box.querySelectorAll('input[type=checkbox]').forEach(function (c) {
+      if (!c.checked) h.add(c.dataset.v);
+    });
+    colFilters[tIdx] = colFilters[tIdx] || {};
+    if (h.size) colFilters[tIdx][colIdx] = h; else delete colFilters[tIdx][colIdx];
+    applyFilters();
   }
-  tbl.querySelector('thead').appendChild(fr);
+  setTimeout(function () {
+    document.addEventListener('click', function h2(e) {
+      if (drop && !drop.contains(e.target)) { closeDrop(); document.removeEventListener('click', h2); }
+    });
+  }, 0);
+}
+// ---- 初始化：表头加排序 + ▾ 筛选 ----
+document.querySelectorAll('table').forEach(function (tbl, tIdx) {
+  tbl.querySelectorAll('thead th').forEach(function (th, colIdx) {
+    var mark = document.createElement('span');
+    mark.className = 'sortmark';
+    th.appendChild(mark);
+    var fb = document.createElement('button');
+    fb.type = 'button'; fb.className = 'fbtn2'; fb.dataset.col = colIdx; fb.textContent = '▾'; fb.title = '筛选此列';
+    th.appendChild(fb);
+    fb.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (drop && drop.dataset.anchor === tIdx + '-' + colIdx) { closeDrop(); return; }
+      openDrop(tbl, tIdx, colIdx, th);
+      drop.dataset.anchor = tIdx + '-' + colIdx;
+    });
+    th.addEventListener('click', function () { sortTable(tbl, colIdx, th); });
+  });
 });
 document.querySelectorAll('.fbtn').forEach(function (b) {
   b.addEventListener('click', function () { curCat = b.dataset.cat; applyFilters(); });
