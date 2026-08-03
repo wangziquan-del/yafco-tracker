@@ -515,5 +515,45 @@
     "summary": "日本 Toho Zinc 事业振兴计划落地：Annaka 冶炼厂 2025/3 停主要设施、FY2025 末（2026/3）完成锌冶炼全面撤退，约 11 万吨产能永久退出；主因长期亏损+TC 低迷。叠加 Glencore Portovesme 二次锌线关闭，坐实中国以外精炼锌 2025 年 -1.6% 的减量叙事。",
     "source": "Toho Zinc 官方公告/SMM",
     "url": "https://www.toho-zinc.co.jp/eng/news/pdf/news_20250627.pdf"
+  },
+  {
+    "date": "2026-08-03",
+    "commodity": "铝",
+    "category": "供应",
+    "impact": "high",
+    "title": "【调研】印尼电解铝投产节奏全面后移：小K 73万吨延期、国企160万吨停滞",
+    "summary": "实地调研验证：小K（纬达贝）在镍铁不减产前提下电力不足，预期投产73万吨电解铝需延期；大K（莫罗瓦利）新建机组进展慢，第二个60万吨推至2028年后；印尼国企合计160万吨规划全部未开工、至少2029年后；西加项目从「150万吨27-28全投」修正为「明年底先投50万吨」；调研方将27/28年产量指引下调62.5/37.4万吨至3224.5/3591.6万吨。供应悲观预期过分计价后进一步下修。",
+    "source": "印尼实地调研纪要（2026-08）",
+    "url": "https://wangziquan-del.github.io/yafco-tracker/indonesia-power.html"
+  },
+  {
+    "date": "2026-08-03",
+    "commodity": "铝",
+    "category": "公司",
+    "impact": "mid",
+    "title": "南山铝业宾坦项目：电力瓶颈松动但产量节奏略晚，27年13万吨/28年35万吨",
+    "summary": "宾坦氧化铝400万吨+电解铝一期25万吨2026-07建成，二期25万吨已公告；现有160MW电力仅够约10万吨，2×150MW新机组土建框架已现、瓶颈开始松动；调研口径产量2027年13万吨、2028年35万吨，略晚于市场预期。",
+    "source": "印尼实地调研纪要（2026-08）",
+    "url": "https://wangziquan-del.github.io/yafco-tracker/indonesia-power.html"
+  },
+  {
+    "date": "2026-08-03",
+    "commodity": "镍",
+    "category": "供应",
+    "impact": "high",
+    "title": "【调研】印尼镍配额不会回到去年宽松状态；湿法硫磺成本700-800美元成最大尾部风险",
+    "summary": "调研多家公司一致判断：镍政策反复源于印尼财政紧张而非营商环境恶化，RKAB配额不会回到去年宽松状态，成本支撑目标价1.7万美元以上；湿法项目建设符合预期但因硫磺原因投产大概率拖后，若中东战争常态化致硫磺计价抬升，需防范湿法亏现金。6月NPI月产13.44万吨环比-3.4%，IWIP开炉率仅66%。",
+    "source": "印尼实地调研纪要（2026-08）",
+    "url": "https://wangziquan-del.github.io/yafco-tracker/indonesia-power.html"
+  },
+  {
+    "date": "2026-08-03",
+    "commodity": "宏观",
+    "category": "宏观",
+    "impact": "mid",
+    "title": "【调研】印尼营商环境恶化被国内媒体夸大：审批加快、中资粮续加码",
+    "summary": "多家非有色中资公司反馈营商环境边际改善而非变差，各类审批流程加快；非镍有色中资公司表示将继续加大当地投资；部分中资园区ESG与基础设施完善。「印尼资产」政策风险折价可能给多了。",
+    "source": "印尼实地调研纪要（2026-08）",
+    "url": "https://wangziquan-del.github.io/yafco-tracker/indonesia-power.html"
   }
 ]
