@@ -521,86 +521,6 @@
     window.addEventListener("resize", function () { if (chartInst) chartInst.resize(); });
   }
 
-  /* ================= 区块：需求面板（海外精炼锡进口季节性） ================= */
-  // 数据由 build_site.py 从 data/tin_imports.json 注入（commodity.demand，目前仅锡品种）。
-  // 每国一张季节性图：x=月份，每年一条线，最新年份加粗高亮。
-  function renderDemandPanel(container, commodity) {
-    var dm = commodity.demand;
-    if (!dm || !dm.countries || !dm.countries.length) return;
-    var YEARS = ["2022", "2023", "2024", "2025", "2026"];
-    var MONTHS = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
-    var YEAR_COLORS = ["#c9c0a8", "#a8b0ba", "#7a8fa8", "#4a6b8a", "#c0453e"]; // 年份越近越深，最新年红色加粗
-
-    var section = el("div", "section");
-    var head = el("div", "section-head");
-    head.appendChild(el("div", "section-title", "需求面板 · " + (dm.title || "海外精炼锡进口季节性")));
-    head.appendChild(el("div", "section-sub", "单位：" + (dm.unit || "吨/月") + " · 数据更新至 " + (dm.updated || "")));
-    section.appendChild(head);
-    var panel = el("div", "panel");
-    var grid = el("div");
-    grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));gap:16px;";
-    panel.appendChild(grid);
-    var fn = el("div", "chart-footnotes");
-    fn.innerHTML = "<div>· " + esc(dm.note || "") + "</div>" +
-      dm.countries.map(function (c) {
-        return "<div>· " + esc(c.name) + "：" + esc(c.source || "") + "；交叉验证：" + esc(c.xval || "") + "</div>";
-      }).join("");
-    panel.appendChild(fn);
-    section.appendChild(panel);
-    container.appendChild(section);
-
-    var charts = [];
-    dm.countries.forEach(function (cty) {
-      var box = el("div");
-      var cap = el("div");
-      cap.style.cssText = "font-size:13px;font-weight:600;color:#2e2a22;margin-bottom:4px;";
-      cap.textContent = cty.name + "精炼锡进口（月度，最新 " + (cty.latest || "-") + "）";
-      box.appendChild(cap);
-      var chartDiv = el("div");
-      chartDiv.style.cssText = "height:250px;width:100%;";
-      box.appendChild(chartDiv);
-      grid.appendChild(box);
-      if (!hasEcharts()) {
-        chartDiv.outerHTML = '<div class="chart-fallback">图表加载失败（ECharts 不可用），数据见下方说明</div>';
-        return;
-      }
-      var inst = echarts.init(chartDiv, null, { renderer: "svg" });  // svg 渲染：规避 GPU canvas 故障
-      charts.push(inst);
-      box.style.overflow = "hidden";  // 防止初始化时按旧布局量宽的 svg 溢出到相邻格子
-      var series = YEARS.map(function (y, i) {
-        var isCur = (i === YEARS.length - 1);
-        return {
-          name: y + (isCur ? "（YTD）" : ""),
-          type: "line",
-          symbol: "circle", symbolSize: isCur ? 6 : 3,
-          lineStyle: { width: isCur ? 3 : 1.5, color: YEAR_COLORS[i] },
-          itemStyle: { color: YEAR_COLORS[i] },
-          emphasis: { focus: "series" },
-          connectNulls: false,
-          data: MONTHS.map(function (_, m) {
-            var v = cty.monthly[y + "-" + (m + 1 < 10 ? "0" : "") + (m + 1)];
-            return v === undefined ? null : v;
-          })
-        };
-      });
-      // 过滤掉无数据的年份线
-      series = series.filter(function (s) {
-        return s.data.some(function (v) { return v !== null; });
-      });
-      inst.setOption(Object.assign(darkChartBase(), {
-        legend: { type: "scroll", top: 2, textStyle: { color: "#6d6248", fontSize: 11 }, itemWidth: 14, itemHeight: 8 },
-        grid: { left: 56, right: 16, top: 34, bottom: 26 },
-        xAxis: { type: "category", data: MONTHS, axisLine: { lineStyle: { color: "#ddd5c4" } },
-          axisLabel: { interval: 0, fontSize: 10 } },
-        yAxis: { type: "value", splitLine: { lineStyle: { color: "#e7e0cf" } } },
-        series: series
-      }));
-    });
-    // 布局稳定后统一 resize 一次（逐个 init 时 grid 还在逐个加子项，先初始化的图会按旧宽度量错）
-    requestAnimationFrame(function () { charts.forEach(function (c) { c.resize(); }); });
-    window.addEventListener("resize", function () { charts.forEach(function (c) { c.resize(); }); });
-  }
-
   /* ================= 区块：公司卡片 ================= */
   // 折叠文本块：超长约 120 字时默认收缩为一行摘要（点击展开/收起），保持卡片紧凑
   function foldText(labelHtml, text, isNote) {
@@ -1285,8 +1205,6 @@
     renderDisruptions(main, commodity);
     // 品种综述紧随其后
     renderReview(main, commodity);
-    // 需求面板（目前仅锡：美/韩/日/印精炼锡进口季节性）
-    renderDemandPanel(main, commodity);
     // 数据板块按品种配置驱动（锡/锌=2 个板块，铝=3 个板块，可任意扩展）
     commodity.sections.forEach(function (sec) {
       renderProductionSection(main, sec, commodity.key, sec.key, commodity.default_view);
