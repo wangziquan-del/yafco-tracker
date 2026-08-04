@@ -1864,6 +1864,17 @@ def main():
         dis_by_name.setdefault(d.get("commodity"), []).append(d)
     print(f"[build] 供应扰动梳理 {len(disruptions)} 条（{', '.join(f'{k}{len(v)}' for k, v in dis_by_name.items())}）")
 
+    # ---- 锡需求面板（data/tin_imports.json，可选；由 _build_tin_imports.py 生成）----
+    tin_imports_file = BASE_DIR / "data" / "tin_imports.json"
+    tin_demand = None
+    if tin_imports_file.exists():
+        try:
+            tin_demand = json.loads(tin_imports_file.read_text(encoding="utf-8"))
+            print(f"[build] 锡需求面板（海外精炼锡进口季节性）{len(tin_demand.get('countries', []))} 国，更新至 {tin_demand.get('updated')}")
+        except Exception as e:
+            print(f"[build] 警告：tin_imports.json 解析失败（{e}），跳过需求面板")
+            tin_demand = None
+
     commodities = []
     for key, cfg in COMMODITIES.items():
         print(f"[build] 抽取 {cfg['name']} <- {cfg['excel']}")
@@ -1895,6 +1906,8 @@ def main():
         build_review(entry)           # 品种综述（数据驱动 + 手工观点段）
         attach_event_flags(entry, news)  # 事故/停产事件 → 公司卡片 ⚠ + 指引表备注
         entry["disruptions"] = dis_by_name.get(cfg["name"], [])  # 近3个月供应扰动梳理
+        if key == "tin" and tin_demand is not None:
+            entry["demand"] = tin_demand  # 需求面板：美/韩/日/印精炼锡进口季节性
         commodities.append(entry)
         sec_summary = ", ".join(
             f"{s['title']} {len(s['companies'])} 家/{sum(len(c['data']) for c in s['companies'])} 数据点"
