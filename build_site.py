@@ -318,6 +318,14 @@ LITHIUM_CALIBER_NOTES = [
     "SQM 为锂盐销量口径（产量不单独披露）；Greenbushes 按 100% 口径（IGO 24.99%/天齐 51%/雅保 24.01%）。",
     "中企（赣锋/中矿/华友/盛新/雅化/紫金/盐湖/藏格/西藏矿业/融捷/永兴/江特）多数仅年报/中报披露，季度列为平台拟合（斜体）。",
     "总计行为口径混杂（权益/100%/销量/拟合）直接求和，仅作量级参考。",
+    "—— 财报溯源（各公司产量/成本出处，复查用）——",
+    "Pilbara（Pilgangoora）：澳交所 Quarterly Activities & Production Report，pilbaraminerals.com.au→Investors；财年止6月（FY25=2024/7-2025/6）。",
+    "泰利森 Greenbush：不单独披露，看 IGO 季报（权益+100% 口径产量）与 Albemarle 季报（igo.com.au / albemarle.com 投资者关系）。",
+    "Arcadium（Mt Cattlin/James Bay 等）：2025/3 起被力拓收购，看 Rio Tinto 季报锂板块（riotinto.com）；此前为 Arcadium 季报。",
+    "Mineral Resources（Mt Marion/Wodgina）：Quarterly Production Report，mineralresources.com.au。",
+    "SQM / Albemarle（盐湖）：季报/10-Q（sqm.com / albemarle.com），SQM 以销量口径披露为主。",
+    "赣锋/天齐/盐湖股份等国内：A股/港股年报、季度经营公告，巨潮资讯网 cninfo.com.cn。",
+    "国内冶炼产能：各公司投产公告 + 百川盈孚/SMM 产能统计第三方复核。",
 ]
 
 SILICON_CALENDAR = [
