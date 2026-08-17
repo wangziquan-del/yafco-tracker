@@ -2040,6 +2040,8 @@ def main():
         ok = ok and good
         print(f"  {'PASS' if good else 'FAIL'}  {label}（实际={got}）")
     print(f"[build] {'全部核对通过' if ok else '存在核对失败，请检查！'}")
+    if not ok:
+        raise SystemExit("[build] 抽查核对失败，已阻止生成结果进入部署流程")
 
 
 if __name__ == "__main__":
